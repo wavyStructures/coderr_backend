@@ -1,7 +1,16 @@
 from django.urls import path, include
-from auth_app.views import LoginView, RegisterView
 
 urlpatterns = [
-    path('login/', LoginView.as_view()),
-    path('register/', RegisterView.as_view()),
+    path('registration/', include('user_auth_app.urls')),
+    path('login/', include('user_auth_app.urls')),
+    
+    path('profiles/', include('profile_app.urls')),
+    
+    path('offers/', include('offers_app.urls')),
+    
+    path('orders/', include('orders_app.urls')),
+    
+    path('reviews/', include('reviews_app.urls')),
+    
+    # path('base-info/', include('base_app.urls')),  
 ]
