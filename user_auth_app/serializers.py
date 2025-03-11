@@ -4,7 +4,8 @@ from user_auth_app.models import CustomUser
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_picture', ...]  # Add all fields you want to expose
+        # fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_picture'] 
+        fields = '__all__'
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:

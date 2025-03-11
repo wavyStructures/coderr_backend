@@ -48,10 +48,18 @@ class ProfileDetailView(APIView):
 
 
 class CustomerListView(APIView):
-    pass
+    permission_classes = [IsAuthenticated]
 
- 
- 
- 
+    def get(self, request):
+        customers = CustomUser.objects.filter(type="customer")
+        serializer = CustomUserSerializer(customers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class BusinessListView(APIView):
-    pass
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        businesses = CustomUser.objects.filter(type="business")
+        serializer = CustomUserSerializer(businesses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

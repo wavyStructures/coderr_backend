@@ -20,8 +20,13 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, username, password, phone, **extra_fields)
 
 class CustomUser(AbstractUser):
+    TYPE_CHOICES = [
+        ('customer', 'Kunde'),
+        ('business', 'Anbieter'),
+    ]
+    
     username = models.CharField(
-        max_length=150,
+        max_length=80,
         unique=True,
         validators=[RegexValidator(
             regex=r"^[\w.@+\- ]+$",  # Allows spaces
@@ -29,13 +34,19 @@ class CustomUser(AbstractUser):
             code="invalid"
         )]
     )
+    file = models.FileField(upload_to='profile_pictures/', null=True, blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20, default="123456789")
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='customer')
+    description = models.CharField(max_length=500, null=True, blank=True, default="")
+    working_hours = models.CharField(max_length=80, null=True, blank=True, default="")
+    created_at = models.DateTimeField(default=now)
     
     is_guest = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
 
     objects = CustomUserManager()  # ✅ Assign the custom manager here
 
