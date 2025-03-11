@@ -1,4 +1,6 @@
 from django.urls import path, include
+from .views import BaseInfoView
+
 
 urlpatterns = [
     path('', include('user_auth_app.urls')),
@@ -11,5 +13,5 @@ urlpatterns = [
     
     path('reviews/', include('reviews_app.urls')),
     
-    # path('base-info/', BaseInfoView.as_view(), name='base-info'),
+    path('base-info/', BaseInfoView.as_view(), name='base-info'),
 ]
