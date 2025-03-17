@@ -33,6 +33,7 @@ class RegisterView(APIView):
                         "username": custom_user.username,
                         "email": custom_user.email,
                         "password": custom_user.password,
+                        "user_id": custom_user.id,
                     },
                     "token": token.key,
                 }, status=status.HTTP_201_CREATED)
