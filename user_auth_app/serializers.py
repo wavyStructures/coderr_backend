@@ -3,11 +3,13 @@ from django.contrib.auth import get_user_model
 
 CustomUser = get_user_model()
 
+
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         # fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_picture'] 
         fields = '__all__'
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     repeated_password = serializers.CharField(write_only=True, required=True) 
@@ -32,7 +34,5 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('repeated_password')
         user = CustomUser.objects.create_user(**validated_data)        
-        # user = CustomUser(**validated_data)
-        # user.set_password(password)  
-        # user.save()
+
         return user

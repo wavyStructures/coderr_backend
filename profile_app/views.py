@@ -31,10 +31,10 @@ class ProfileDetailView(APIView):
         if user is None:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user != user:
+        if request.user != user and not request.user.is_superuser:
             return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
-        allowed_fields = {"first_name", "last_name", "phone_number", "profile_picture"}
+        allowed_fields = {"first_name", "last_name", "phone_number", "profile_picture", "type"}
         filtered_data = {key: value for key, value in request.data.items() if key in allowed_fields}
 
         serializer = CustomUserSerializer(user, data=filtered_data, partial=True)
@@ -44,8 +44,16 @@ class ProfileDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
  
+    def delete(self, request, pk):
+        user = self.get_object(pk)
+        if user is None:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        if request.user != user and not request.user.is_superuser:
+            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 class CustomerListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -55,6 +63,7 @@ class CustomerListView(APIView):
         serializer = CustomUserSerializer(customers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # def delete(self, request, pk):
 
 class BusinessListView(APIView):
     permission_classes = [IsAuthenticated]
