@@ -5,19 +5,19 @@ from django.core.validators import RegexValidator
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, username, password=None, phone="123456789", **extra_fields):
+    def create_user(self, email, username, password=None, tel="123456789", **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
-        user = self.model(email=email, username=username, phone=phone, **extra_fields)
+        user = self.model(email=email, username=username, tel=tel, **extra_fields)
         user.set_password(password)  # Hash the password!
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password=None, phone="123456789", **extra_fields):
+    def create_superuser(self, email, username, password=None, tel="123456789", **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        return self.create_user(email, username, password, phone, **extra_fields)
+        return self.create_user(email, username, password, tel, **extra_fields)
 
 class CustomUser(AbstractUser):
     TYPE_CHOICES = [
@@ -37,7 +37,7 @@ class CustomUser(AbstractUser):
     file = models.FileField(upload_to='profile_pictures/', null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20, default="123456789")
+    tel = models.CharField(max_length=20, default="123456789")
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='customer')
     description = models.CharField(max_length=500, null=True, blank=True, default="")
     working_hours = models.CharField(max_length=80, null=True, blank=True, default="")

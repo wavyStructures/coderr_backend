@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
                 ('username', models.CharField(max_length=150, unique=True, validators=[django.core.validators.RegexValidator(code='invalid', message='Enter a valid username. Only letters, numbers, spaces, and @/./+/-/_ are allowed.', regex='^[\\w.@+\\- ]+$')])),
                 ('email', models.EmailField(max_length=254, unique=True)),
-                ('phone', models.CharField(default='123456789', max_length=20)),
+                ('tel', models.CharField(default='123456789', max_length=20)),
                 ('is_guest', models.BooleanField(default=False)),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
