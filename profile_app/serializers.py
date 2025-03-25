@@ -34,6 +34,6 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             "id", "username", "first_name", "last_name",
-            "file", "type"
+            "file", "uploaded_at", "type"
         ]
         
