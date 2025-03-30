@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.conf import settings
 
-CustomUser = get_user_model()
+CustomUser = settings.AUTH_USER_MODEL
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

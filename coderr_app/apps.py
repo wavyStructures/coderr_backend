@@ -7,3 +7,5 @@ class CoderrAppConfig(AppConfig):
 
 def ready(self):
     import your_app.signals
+    
+    

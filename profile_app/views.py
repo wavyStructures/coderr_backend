@@ -68,7 +68,6 @@ class CustomerListView(APIView):
         serializer = CustomUserSerializer(customers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 class BusinessListView(APIView):
     permission_classes = [IsAuthenticated]
 

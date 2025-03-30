@@ -6,12 +6,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from user_auth_app.serializers import CustomUserSerializer, RegisterSerializer
-from django.contrib.auth import get_user_model
 from offers_app.models import Offer
 from orders_app.models import Order
 from reviews_app.models import Review
+from django.conf import settings
 
-User = get_user_model() 
+CustomUser = settings.AUTH_USER_MODEL
        
 class RegisterView(APIView):
     permission_classes = (AllowAny,)
