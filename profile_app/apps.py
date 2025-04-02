@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from django.conf import settings
 import random
+import sys
 
 
 class ProfileAppConfig(AppConfig):
@@ -8,6 +9,10 @@ class ProfileAppConfig(AppConfig):
     name = 'profile_app'
     
     def ready(self):
+        # Avoid database operations during migration commands
+        if "migrate" in sys.argv or "makemigrations" in sys.argv:
+            return
+    
         print("App is starting ... ensuring sample data exists.")
         
         

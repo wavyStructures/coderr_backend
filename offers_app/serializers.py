@@ -31,6 +31,13 @@ class OfferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at", "user"]  # Prevent user modifications
 
+    def get_details(self, obj):
+        return [
+            {"id": detail.id, "url": f"/api/offerdetails/{detail.id}/"}
+            for detail in obj.details.all()
+        ]
+    
+    
     def create(self, validated_data):
         """Create an offer and its related details."""
         request = self.context.get("request")
