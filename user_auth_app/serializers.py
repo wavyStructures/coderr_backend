@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from django.conf import settings
+from .models import CustomUser 
+# from django.conf import settings
 
-CustomUser = settings.AUTH_USER_MODEL
+# CustomUser = settings.AUTH_USER_MODEL
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -56,6 +57,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('repeated_password')
-        user = CustomUser.objects.create_user(**validated_data)        
+
+        password = validated_data.pop('password')  # Extract plain password
+        user = CustomUser(**validated_data)        # Create user instance without saving
+        user.set_password(password)                # Hash the password properly
+        user.save()                                # Save to database
 
         return user
+    # def create(self, validated_data):
+    #     validated_data.pop('repeated_password')
+    #     user = CustomUser.objects.create_user(**validated_data)        
+
+    #     return user

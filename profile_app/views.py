@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from user_auth_app.models import CustomUser
-from user_auth_app.serializers import CustomUserSerializer 
 
+from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomUserSerializer)
 
 class ProfileDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -17,12 +17,14 @@ class ProfileDetailView(APIView):
     def get_object(self, pk):
         return get_object_or_404(CustomUser, pk=pk)
           
-
     def get(self, request, pk):
         try:
             user = self.get_object(pk)
-            serializer = CustomUserSerializer(user)
+            
+            # for GET full profile serializer
+            serializer = ProfileSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
         except NotFound:
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -33,7 +35,13 @@ class ProfileDetailView(APIView):
             if request.user != user:
                 return Response({"error": "You do not have permission to edit this profile."}, status=status.HTTP_403_FORBIDDEN)
 
-            serializer = CustomUserSerializer(user, data=filtered_data, partial=True)
+            # choose serializer based on type
+            if user.type == "business":
+                serializer = BusinessProfileSerializer(user, data=request.data, partial=True)
+            elif user.type == "customer":
+                serializer = ProfileSerializer(user, data=request.data, partial=True)
+            else:
+                return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
             
             if serializer.is_valid():
                 serializer.save()
@@ -42,6 +50,7 @@ class ProfileDetailView(APIView):
 
         except NotFound:
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
         except Exception as e:
             return Response({"error": "An expected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

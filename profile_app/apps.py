@@ -1,5 +1,8 @@
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils import timezone
+
+from decimal import Decimal
 import random
 import sys
 
@@ -27,35 +30,61 @@ class ProfileAppConfig(AppConfig):
         self.create_sample_data(User, Offer, Order, Review)
 
     def create_sample_data(self, User, Offer, Order, Review):
-        # Create or update customer users
+
+                # Create or update customer users
         for i in range(5):
-            user, created = User.objects.update_or_create(
-                username=f'customer_user{i}',
-                defaults={
-                    'email': f'customer{i}@example.com',
-                    'password': 'password123',  # Use set_password for real passwords
-                    'type': 'customer',
-                }
-            )
-            if created:
-                print(f"Created customer_user{i}")
-            else:
-                print(f"Updated customer_user{i}")
+            user, created = User.objects.get_or_create(username=f'customer_user{i}')
+            user.email = f'customer{i}@example.com'
+            user.type = 'customer'
+            
+            # Only hash and set password if needed
+            if not user.password or not user.password.startswith('pbkdf2_sha256$'):
+                user.set_password('password123')
+            
+            user.save()
+            print(f"{'Created' if created else 'Updated'} customer_user{i}")
 
         # Create or update business users
         for i in range(10):
-            user, created = User.objects.update_or_create(
-                username=f'business_user{i}',
-                defaults={
-                    'email': f'business{i}@example.com',
-                    'password': 'password123',
-                    'type': 'business',
-                }
-            )
-            if created:
-                print(f"Created business_user{i}")
-            else:
-                print(f"Updated business_user{i}")
+            user, created = User.objects.get_or_create(username=f'business_user{i}')
+            user.email = f'business{i}@example.com'
+            user.type = 'business'
+            
+            if not user.password or not user.password.startswith('pbkdf2_sha256$'):
+                user.set_password('password123')
+            
+            user.save()
+            print(f"{'Created' if created else 'Updated'} business_user{i}")
+
+        # # Create or update customer users
+        # for i in range(5):
+        #     user, created = User.objects.update_or_create(
+        #         username=f'customer_user{i}',
+        #         defaults={
+        #             'email': f'customer{i}@example.com',
+        #             'password': 'password123',  # Use set_password for real passwords
+        #             'type': 'customer',
+        #         }
+        #     )
+        #     if created:
+        #         print(f"Created customer_user{i}")
+        #     else:
+        #         print(f"Updated customer_user{i}")
+
+        # # Create or update business users
+        # for i in range(10):
+        #     user, created = User.objects.update_or_create(
+        #         username=f'business_user{i}',
+        #         defaults={
+        #             'email': f'business{i}@example.com',
+        #             'password': 'password123',
+        #             'type': 'business',
+        #         }
+        #     )
+        #     if created:
+        #         print(f"Created business_user{i}")
+        #     else:
+        #         print(f"Updated business_user{i}")
 
         # Create sample offers
         business_users = User.objects.filter(type="business")
@@ -68,8 +97,10 @@ class ProfileAppConfig(AppConfig):
                 title=f"Offer {i}",
                 defaults={
                     'description': f"Description for offer {i}",
-                    'user': some_user_instance,  # Assign the user here
-
+                    'user': some_user_instance, 
+                    'image': None,
+                    # 'image': ContentFile(b'', name=f"offer_{i}.jpg"),  # Creates an empty file
+                    # 'image': File(img_file),
                     # ,
                     # 'price': random.randint(50, 200)
                 }
@@ -84,11 +115,13 @@ class ProfileAppConfig(AppConfig):
             Order.objects.update_or_create(
                 order_id=i + 1,  
                 defaults={
-                    'user': User.objects.filter(type='customer').order_by('?').first(),  # Random customer
-                    'offer': Offer.objects.order_by('?').first(),  # Random offer
+                    'customer_user': User.objects.filter(type='customer').order_by('?').first(),
+                    'business_user': User.objects.filter(type='business').order_by('?').first(),
+                    'offer': Offer.objects.order_by('?').first(),  
                     'status': random.choice(['pending', 'completed', 'in_progress']),
-                    'order_date': "2025-03-01",
-                    'delivery_date': "2025-03-10",
+                    'price': offer.price if hasattr(offer, 'price') else Decimal('100.00'),
+                    'order_date': timezone.now(),
+                    'delivery_date': timezone.now() + timezone.timedelta(days=7),  
                 }
             )
             print(f"Created/Updated Order {i + 1}")
@@ -98,12 +131,21 @@ class ProfileAppConfig(AppConfig):
             Review.objects.update_or_create(
                 id=i + 1,  
                 defaults={
-                    'user': User.objects.filter(type='customer').order_by('?').first(),  # Random customer
-                    'offer': Offer.objects.order_by('?').first(),  # Random offer
+                    'customer': User.objects.filter(type='customer').order_by('?').first(),  # ✔️ Use correct field name
+                    'offer': Offer.objects.order_by('?').first(),
                     'rating': random.randint(1, 5),
-                    'comment': f"This is a review comment for review {i}.",
+                    'comment': f"This is a review comment for review {i+1}.",
                 }
             )
+            # Review.objects.update_or_create(
+            #     id=i + 1,  
+            #     defaults={
+            #         'user': User.objects.filter(type='customer').order_by('?').first(),  # Random customer
+            #         'offer': Offer.objects.order_by('?').first(),  # Random offer
+            #         'rating': random.randint(1, 5),
+            #         'comment': f"This is a review comment for review {i}.",
+            #     }
+            # )
             print(f"Created/Updated Review {i + 1}")
 
         print("Sample data ensured.")
