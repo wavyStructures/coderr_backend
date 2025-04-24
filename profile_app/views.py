@@ -7,8 +7,9 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from user_auth_app.models import CustomUser
+from user_auth_app.serializers import CustomUserSerializer
 
-from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomUserSerializer)
+from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomerProfileSerializer)
 
 class ProfileDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -21,9 +22,15 @@ class ProfileDetailView(APIView):
         try:
             user = self.get_object(pk)
             
-            # for GET full profile serializer
-            serializer = ProfileSerializer(user)
+            if user.type == "business":
+                serializer = BusinessProfileSerializer(user)
+            elif user.type == "customer":
+                serializer = CustomerProfileSerializer(user)
+            else:
+                return Response({"error": "Unsupported user type"}, status=status.HTTP_400_BAD_REQUEST)
+            
             return Response(serializer.data, status=status.HTTP_200_OK)
+
 
         except NotFound:
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -82,5 +89,5 @@ class BusinessListView(APIView):
 
     def get(self, request):
         businesses = CustomUser.objects.filter(type="business")
-        serializer = CustomUserSerializer(businesses, many=True)
+        serializer = BusinessProfileSerializer(businesses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

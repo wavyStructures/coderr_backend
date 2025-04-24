@@ -13,7 +13,7 @@ class Offer(models.Model):
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(default=now)
     min_price = models.DecimalField(max_digits=10, decimal_places=2, default=100)
-    min_delivery_time = models.PositiveIntegerField(default=30)  
+    min_delivery_time = models.PositiveIntegerField(default=3)  
 
     def __str__(self):
         return self.title
@@ -31,10 +31,7 @@ class OfferDetail(models.Model):
     ]
 
     offer = models.ForeignKey("Offer", on_delete=models.CASCADE, related_name='details')
-    # offer = models.ForeignKey(on_delete=models.CASCADE, related_name='details', to=Offer)
-    # business = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None)
     description = models.TextField(default="sample description")
-
     title = models.CharField(max_length=200, default="sample title")
     revisions = models.PositiveIntegerField(default=0)
     delivery_time = models.PositiveIntegerField(default=30)
@@ -51,3 +48,4 @@ class OfferDetail(models.Model):
 
     def __str__(self):
         return f"Detail for {self.offer.title} - {self.offer_type.capitalize()}"
+

@@ -38,14 +38,14 @@ class CustomUser(AbstractUser):
         # default='profile_pictures/default_profile_picture.jpg'
         )
     uploaded_at = models.DateTimeField(null=True, blank=True) 
-
-    def save(self, *args, **kwargs):
-        if self.pk:
-            original = CustomUser.objects
+  
+    # def save(self, *args, **kwargs):
+    #     if self.pk:
+    #         original = CustomUser.objects
         
-        if self.file and not self.uploaded_at:
-            self.uploaded_at = now()
-        super().save(*args, **kwargs)
+    #     if self.file and not self.uploaded_at:
+    #         self.uploaded_at = now()
+    #     super().save(*args, **kwargs)
 
     location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)
@@ -63,10 +63,22 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()  # ✅ Assign the custom manager here
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            original = CustomUser.objects  # not used but leaving if needed
+
+        if self.file and not self.uploaded_at:
+            self.uploaded_at = now()
+
         if self.username == "guest":
             self.set_unusable_password()
-       
+
         super().save(*args, **kwargs)
+
+    # def save(self, *args, **kwargs):
+    #     if self.username == "guest":
+    #         self.set_unusable_password()
+       
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email

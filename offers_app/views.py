@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -9,11 +9,11 @@ from .serializers import OfferSerializer, OfferDetailSerializer
 from django.db.models import Min
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10  
+    # page_size = 10  
     page_size_query_param = "page_size"
     max_page_size = 100
 
-class OfferListView(ListAPIView):
+class OfferListView(ListCreateAPIView):
     # queryset = Offer.objects.all()
     serializer_class = OfferSerializer
     pagination_class = StandardResultsSetPagination
@@ -59,18 +59,10 @@ class OfferListView(ListAPIView):
             qs = qs.filter(user__profile__location__icontains=location)
         
         return qs
-        
-        # return Offer.objects.annotate(
-        #     min_price=Min('details__price'),
-        #     min_delivery_time=Min('details__delivery_time')
-        # )
-        # print("Offers queryset successfully annotated")  # Debug only
-        # return qs
 
-    # filterset_fields = ["user", "min_price", "min_delivery_time"]
-    # ordering_fields = ["updated_at", "min_price"]
-    # search_fields = ["title", "description"]
 
 class OfferDetailView(RetrieveAPIView):
     queryset = Offer.objects.all()
     serializer_class = OfferSerializer
+    
+

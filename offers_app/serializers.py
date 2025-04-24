@@ -1,41 +1,59 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
+
 from .models import Offer, OfferDetail
 from user_auth_app.serializers import CustomUserSerializer
-from django.conf import settings
+from django.contrib.auth import get_user_model
 
-CustomUser = settings.AUTH_USER_MODEL 
+CustomUser = get_user_model()
 
 class OfferDetailSerializer(serializers.ModelSerializer):
     """Serializes individual offer details."""
 
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = OfferDetail
-        fields = [
-            "id", "title", "revisions", "delivery_time_in_days", 
-            "price", "features", "offer_type"
-        ]
+        fields = ["id", "url"]
     
+    def get_url(self, obj):
+        request = self.context.get("request")           
+        if request is None:
+            return None
+        return reverse("offer-detail", kwargs={"pk": obj.id}, request=request)
+
+class OfferUserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ["first_name", "last_name", "username"]
         
 class OfferSerializer(serializers.ModelSerializer):
     """Serializes Offer objects including nested OfferDetails."""
-    annotated_min_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    annotated_min_delivery_time = serializers.IntegerField(read_only=True)
     
-    user_details = CustomUserSerializer(source="user", read_only=True)  
-    details = OfferDetailSerializer(many=True)  
-
-
+    details = OfferDetailSerializer(many=True, read_only=True)
+    user_details = OfferUserDetailSerializer(source="user", read_only=True)
+    
+    min_price = serializers.SerializerMethodField()
+    min_delivery_time = serializers.SerializerMethodField()
+    
+    
     class Meta:
         model = Offer
         fields = [
             "id", "user", "title", "image", "description",
             "created_at", "updated_at", "details",
-            "annotated_min_price", 
-            "annotated_min_delivery_time",
+            "min_price", 
+            "min_delivery_time",
             "user_details"
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "user", "annotated_min_price", "annotated_min_delivery_time"]
+        read_only_fields = ["id", "user", "details", "user_details", "created_at", "updated_at"]
 
+    def get_min_price(self, obj):
+        return obj.min_price
+
+    def get_min_delivery_time(self, obj):
+        return obj.min_delivery_time    
+    
     def get_details(self, obj):
         return [
             {"id": detail.id, "url": f"/api/offerdetails/{detail.id}/"}
@@ -59,10 +77,11 @@ class OfferSerializer(serializers.ModelSerializer):
             detail = OfferDetail.objects.create(offer=offer, **detail_data)
             detail_objs.append(detail)
 
-        # Update min_price and min_delivery_time based on OfferDetails
-        offer.min_price = min([d.price for d in detail_objs])
-        offer.min_delivery_time = min([d.delivery_time_in_days for d in detail_objs])
-        offer.save()
+        # Update min_price and min_delivery_time based on OfferDetails       
+        if detail_objs:
+            offer.min_price = min(d.price for d in detail_objs)
+            offer.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
+            offer.save()
             
         return offer
 

@@ -1,8 +1,5 @@
 from rest_framework import serializers
 from .models import CustomUser 
-# from django.conf import settings
-
-# CustomUser = settings.AUTH_USER_MODEL
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -64,8 +61,4 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()                                # Save to database
 
         return user
-    # def create(self, validated_data):
-    #     validated_data.pop('repeated_password')
-    #     user = CustomUser.objects.create_user(**validated_data)        
-
-    #     return user
+  
