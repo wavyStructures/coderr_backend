@@ -14,6 +14,20 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetail
+        fields = '__all__'    
+    def get_url(self, obj):
+        request = self.context.get("request")           
+        if request is None:
+            return None
+        return reverse("offer-detail", kwargs={"pk": obj.id}, request=request)
+
+class OfferMiniDetailSerializer(serializers.ModelSerializer):
+    """Serializes individual offer details."""
+
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetail
         fields = ["id", "url"]
     
     def get_url(self, obj):
@@ -21,6 +35,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         if request is None:
             return None
         return reverse("offer-detail", kwargs={"pk": obj.id}, request=request)
+
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,7 +45,9 @@ class OfferUserDetailSerializer(serializers.ModelSerializer):
 class OfferSerializer(serializers.ModelSerializer):
     """Serializes Offer objects including nested OfferDetails."""
     
-    details = OfferDetailSerializer(many=True, read_only=True)
+    details = OfferMiniDetailSerializer(many=True, read_only=True)
+    details_input = OfferDetailSerializer(many=True, write_only=True, required=False)
+
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
     
     min_price = serializers.SerializerMethodField()
@@ -41,7 +58,9 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = [
             "id", "user", "title", "image", "description",
-            "created_at", "updated_at", "details",
+            "created_at", "updated_at", 
+            "details",
+            "details_input",
             "min_price", 
             "min_delivery_time",
             "user_details"
@@ -54,11 +73,6 @@ class OfferSerializer(serializers.ModelSerializer):
     def get_min_delivery_time(self, obj):
         return obj.min_delivery_time    
     
-    def get_details(self, obj):
-        return [
-            {"id": detail.id, "url": f"/api/offerdetails/{detail.id}/"}
-            for detail in obj.details.all()
-        ]
     
     
     def create(self, validated_data):
@@ -69,7 +83,7 @@ class OfferSerializer(serializers.ModelSerializer):
         if not user or user.type != "business":
             raise serializers.ValidationError({"error": "Only business users can create offers."})
         
-        details_data = validated_data.pop("details", [])
+        details_data = validated_data.pop("details_input", [])
         offer = Offer.objects.create(user=user, **validated_data)
 
         detail_objs = []
@@ -93,3 +107,4 @@ class OfferSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+

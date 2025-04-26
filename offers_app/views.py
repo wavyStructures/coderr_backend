@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
@@ -61,8 +61,8 @@ class OfferListView(ListCreateAPIView):
         return qs
 
 
-class OfferDetailView(RetrieveAPIView):
-    queryset = Offer.objects.all()
+class OfferDetailView(RetrieveUpdateAPIView):
+    queryset = Offer.objects.all().order_by('id')
     serializer_class = OfferSerializer
     
 
