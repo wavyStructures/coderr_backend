@@ -15,11 +15,18 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferDetail
         fields = '__all__'    
+    # def get_url(self, obj):
+    #     request = self.context.get("request")           
+    #     if request is None:
+    #         return None
+    #     return reverse("offer-detail-main", kwargs={"pk": obj.id}, request=request)
+
+
     def get_url(self, obj):
         request = self.context.get("request")           
         if request is None:
             return None
-        return reverse("offer-detail", kwargs={"pk": obj.id}, request=request)
+        return reverse("offer-detail-retrieve", kwargs={"pk": obj.id}, request=request)
 
 class OfferMiniDetailSerializer(serializers.ModelSerializer):
     """Serializes individual offer details."""
@@ -34,7 +41,7 @@ class OfferMiniDetailSerializer(serializers.ModelSerializer):
         request = self.context.get("request")           
         if request is None:
             return None
-        return reverse("offer-detail", kwargs={"pk": obj.id}, request=request)
+        return reverse("offer-detail-main", kwargs={"pk": obj.id}, request=request)
 
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
@@ -101,10 +108,31 @@ class OfferSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """
-        Allow partial updates to an offer.
+        Allow partial updates to an offer and its related details.
         """
+        details_data = validated_data.pop("details_input", None)
+        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+        
+        if details_data is not None:
+            # Optional: Clear existing details
+            instance.details.all().delete()
+
+            detail_objs = []
+            for detail_data in details_data:
+                detail = OfferDetail.objects.create(offer=instance, **detail_data)
+                detail_objs.append(detail)
+
+            # Update min_price and min_delivery_time again
+            if detail_objs:
+                instance.min_price = min(d.price for d in detail_objs)
+                instance.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
+                instance.save()        
+        
+        
+        
+        
         return instance
 

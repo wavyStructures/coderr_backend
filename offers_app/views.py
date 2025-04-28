@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from .models import Offer, OfferDetail
 from .serializers import OfferSerializer, OfferDetailSerializer
 from django.db.models import Min
+
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsOwnerOrReadOnly
 
 class StandardResultsSetPagination(PageNumberPagination):
     # page_size = 10  
@@ -61,8 +64,12 @@ class OfferListView(ListCreateAPIView):
         return qs
 
 
-class OfferDetailView(RetrieveUpdateAPIView):
+class OfferDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all().order_by('id')
     serializer_class = OfferSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     
 
+class OfferDetailRetrieveView(RetrieveAPIView):
+    queryset = OfferDetail.objects.all()
+    serializer_class = OfferDetailSerializer

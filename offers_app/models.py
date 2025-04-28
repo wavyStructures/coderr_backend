@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.timezone import now
 from django.conf import settings
 
+
 class Offer(models.Model):
     """
     Represents an offer created by a business user.
@@ -48,4 +49,8 @@ class OfferDetail(models.Model):
 
     def __str__(self):
         return f"Detail for {self.offer.title} - {self.offer_type.capitalize()}"
+
+
+
+    
 
