@@ -1,6 +1,6 @@
 from rest_framework import serializers
+from rest_framework.views import APIView
 from rest_framework.reverse import reverse
-
 from .models import Offer, OfferDetail
 from user_auth_app.serializers import CustomUserSerializer
 from django.contrib.auth import get_user_model
@@ -14,7 +14,8 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetail
-        fields = '__all__'    
+        exclude = ["offer"]
+        # fields = '__all__'    
     # def get_url(self, obj):
     #     request = self.context.get("request")           
     #     if request is None:
@@ -50,13 +51,13 @@ class OfferUserDetailSerializer(serializers.ModelSerializer):
         fields = ["first_name", "last_name", "username"]
         
 class OfferSerializer(serializers.ModelSerializer):
-    """Serializes Offer objects including nested OfferDetails."""
+    """Serializes Offer objects and dynamically chooses nested OfferDetails."""
     
-    details = OfferMiniDetailSerializer(many=True, read_only=True)
-    details_input = OfferDetailSerializer(many=True, write_only=True, required=False)
+    # details = OfferMiniDetailSerializer(many=True, read_only=True)
 
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
-    
+    details_input = OfferDetailSerializer(many=True, write_only=True, required=False)
+
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
     
@@ -72,7 +73,7 @@ class OfferSerializer(serializers.ModelSerializer):
             "min_delivery_time",
             "user_details"
         ]
-        read_only_fields = ["id", "user", "details", "user_details", "created_at", "updated_at"]
+        read_only_fields = ["id", "user", "user_details", "created_at", "updated_at"]
 
     def get_min_price(self, obj):
         return obj.min_price
@@ -80,7 +81,33 @@ class OfferSerializer(serializers.ModelSerializer):
     def get_min_delivery_time(self, obj):
         return obj.min_delivery_time    
     
-    
+    def get_fields(self):
+        """Dynamically swap the `details` serializer based on context (view type)."""
+        fields = super().get_fields()
+        request = self.context.get("request")
+        
+        # Try to detect if this is a list view or detail view
+        if request and request.parser_context:
+            view = request.parser_context.get("view")
+            action = getattr(view, 'action', None)  # if using ViewSet
+            if isinstance(view, APIView):
+                # Fallback: check view class
+                if view.__class__.__name__.lower().endswith("detailview"):
+                    use_full = True
+                else:
+                    use_full = False
+            else:
+                use_full = (action == "retrieve")
+
+            if use_full:
+                fields["details"] = OfferDetailSerializer(many=True, read_only=True)
+            else:
+                fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
+        else:
+            # Default to minimal if uncertain
+            fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
+
+        return fields
     
     def create(self, validated_data):
         """Create an offer and its related details."""

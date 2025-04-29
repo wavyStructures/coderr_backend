@@ -35,7 +35,7 @@ class OfferListView(ListCreateAPIView):
     def get_queryset(self):
         qs = Offer.objects.annotate(
             annotated_min_price=Min('details__price'),
-            annotated_min_delivery_time=Min('details__delivery_time')
+            annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
 
         # Handle ?creator_id=2

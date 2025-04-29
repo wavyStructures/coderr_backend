@@ -121,19 +121,19 @@ class ProfileAppConfig(AppConfig):
             offer_types = ['basic', 'standard', 'premium']
             for j, offer_type in enumerate(offer_types):  # Create 3 details per offer
                 price = random.randint(50, 200)
-                delivery_time = random.randint(1, 14)
+                delivery_time_in_days = random.randint(1, 14)
 
                 OfferDetail.objects.create(
                     offer=offer,
                     offer_type=offer_type,
                     price=price,
-                    delivery_time=delivery_time,
+                    delivery_time_in_days=delivery_time_in_days,
                     title=f"{offer_type.capitalize()} Package",
                     description=f"Detail{j+1} for offer{i}"
                 )
 
                 prices.append(price)
-                delivery_times.append(delivery_time)
+                delivery_times.append(delivery_time_in_days)
 
             # Set the new annotated fields
             offer.min_price = min(prices)

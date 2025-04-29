@@ -34,7 +34,7 @@ class OrderCreateSerializer(serializers.Serializer):
             price=offer.price,
             features=offer.features,
             revisions=offer.revisions,
-            delivery_time=offer.delivery_time,
+            delivery_time=offer.delivery_time_in_days,
             offer_type=offer.offer_type,
             status='in_progress',
         )

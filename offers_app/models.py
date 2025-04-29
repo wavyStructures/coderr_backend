@@ -35,7 +35,7 @@ class OfferDetail(models.Model):
     description = models.TextField(default="sample description")
     title = models.CharField(max_length=200, default="sample title")
     revisions = models.PositiveIntegerField(default=0)
-    delivery_time = models.PositiveIntegerField(default=30)
+    delivery_time_in_days = models.PositiveIntegerField(default=30)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     features = models.JSONField(default=list)  
     offer_type = models.CharField(max_length=10, choices=OFFER_TYPES)
