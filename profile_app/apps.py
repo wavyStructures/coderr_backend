@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from django.conf import settings
 from django.utils import timezone
+from django.db import connection
 
 from decimal import Decimal
 import random
@@ -29,11 +30,15 @@ class ProfileAppConfig(AppConfig):
 
         User = get_user_model()     
         
-        self.create_sample_data(User, Offer, Order, OfferDetail, Review)
+        # ✅ Check if the required table exists before querying the DB
+        if 'user_auth_app_customuser' in connection.introspection.table_names():
+            self.create_sample_data(User, Offer, Order, OfferDetail, Review)
+        else:
+            print("Skipping sample data creation — user table doesn't exist.")
 
     def create_sample_data(self, User, Offer, Order, OfferDetail, Review):
 
-                # Create or update customer users
+        # Create or update customer users
         for i in range(5):
             user, created = User.objects.get_or_create(username=f'customer_user{i}')
             user.first_name = f'Customer{i}'
@@ -62,36 +67,6 @@ class ProfileAppConfig(AppConfig):
             user.save()
             print(f"{'Created' if created else 'Updated'} business_user{i}")
 
-        # # Create or update customer users
-        # for i in range(5):
-        #     user, created = User.objects.update_or_create(
-        #         username=f'customer_user{i}',
-        #         defaults={
-        #             'email': f'customer{i}@example.com',
-        #             'password': 'password123',  # Use set_password for real passwords
-        #             'type': 'customer',
-        #         }
-        #     )
-        #     if created:
-        #         print(f"Created customer_user{i}")
-        #     else:
-        #         print(f"Updated customer_user{i}")
-
-        # # Create or update business users
-        # for i in range(10):
-        #     user, created = User.objects.update_or_create(
-        #         username=f'business_user{i}',
-        #         defaults={
-        #             'email': f'business{i}@example.com',
-        #             'password': 'password123',
-        #             'type': 'business',
-        #         }
-        #     )
-        #     if created:
-        #         print(f"Created business_user{i}")
-        #     else:
-        #         print(f"Updated business_user{i}")
-
         # Create sample offers
         business_users = User.objects.filter(type="business")
         if business_users.exists():
@@ -111,12 +86,10 @@ class ProfileAppConfig(AppConfig):
                 }
             )
 
-            # Clear any existing offer details
             offer.details.all().delete()
 
             prices = []
             delivery_times = []
-
 
             offer_types = ['basic', 'standard', 'premium']
             for j, offer_type in enumerate(offer_types):  # Create 3 details per offer
@@ -145,7 +118,7 @@ class ProfileAppConfig(AppConfig):
         # Create sample orders       
         for i in range(5):
             Order.objects.update_or_create(
-                order_id=i + 1,  
+                id=i + 1,  
                 defaults={
                     'customer_user': User.objects.filter(type='customer').order_by('?').first(),
                     'business_user': User.objects.filter(type='business').order_by('?').first(),
@@ -153,7 +126,7 @@ class ProfileAppConfig(AppConfig):
                     'status': random.choice(['pending', 'completed', 'in_progress']),
                     'price': offer.price if hasattr(offer, 'price') else Decimal('100.00'),
                     'order_date': timezone.now(),
-                    'delivery_date': timezone.now() + timezone.timedelta(days=7),  
+                    'delivery_time_in_days': random.randint(3, 14),  
                 }
             )
             print(f"Created/Updated Order {i + 1}")

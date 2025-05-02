@@ -22,6 +22,9 @@ class OrderListCreateAPIView(APIView):
     
     def post(self, request):
         serializer = OrderCreateSerializer(data=request.data, context={'request': request})
+
+        if request.user.type != 'customer':
+            raise PermissionDenied("Only customers can place orders.")
         if serializer.is_valid():
             order = serializer.save()
             response_serializer = OrderSerializer(order)
