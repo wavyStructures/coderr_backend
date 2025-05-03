@@ -3,11 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
 from orders_app.models import Order
 from offers_app.models import Offer
 from .serializers import OrderSerializer, OrderCreateSerializer
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 class OrderListCreateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -31,7 +33,10 @@ class OrderListCreateAPIView(APIView):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class OrderStatusUpdateAPIView(APIView):
+
+
+
+class OrderDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, pk):
@@ -46,13 +51,9 @@ class OrderStatusUpdateAPIView(APIView):
         
         order.status = new_status
         order.save()
-        
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class OrderDeleteAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
+        
     def delete(self, request, pk):
         if not request.user.is_staff:
             raise PermissionDenied("Only admin users can delete orders.")
@@ -60,8 +61,6 @@ class OrderDeleteAPIView(APIView):
         order = get_object_or_404(Order, pk=pk)
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
     
 from rest_framework.decorators import api_view
 from django.contrib.auth import get_user_model
@@ -69,12 +68,14 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def order_count(request, business_user_id):
     user = get_object_or_404(User, pk=business_user_id, type='business')
     count = Order.objects.filter(business_user=user, status='in_progress').count()
     return Response({'order_count': count})
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def completed_order_count(request, business_user_id):
     user = get_object_or_404(User, pk=business_user_id, type='business')
     count = Order.objects.filter(business_user=user, status='completed').count()
