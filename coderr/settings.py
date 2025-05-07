@@ -147,9 +147,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
         ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '250/day',
-        'user': '260/day',
-        'question': '40/day', 
+        'anon': '2500/day',
+        'user': '2600/day',
+        'question': '400/day', 
         # 'question-get': '2/day',
         # 'question-post': '2/day',
         # 'question-put': '2/day',

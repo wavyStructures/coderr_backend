@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from rest_framework import generics, filters
+from rest_framework import generics, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
-from reviews_app.models import Review
+from .models import Review
 from .serializers import ReviewSerializer
 from .permissions import IsReviewerOrReadOnly, IsCustomerAndAuthenticated
 
@@ -17,16 +17,9 @@ class ReviewListCreateView(generics.ListCreateAPIView):
         serializer.save(reviewer=self.request.user)
 
     def get_permissions(self):
-        if self.action == 'list':
-            permission_classes = [IsCustomerAndAuthenticated]
-        else:
-            permission_classes = [IsReviewerOrReadOnly]
-        return [permission() for permission in permission_classes]
-    
-    # def get_permissions(self):
-    #     if self.request.method == 'POST':
-    #         return [IsCustomerAndAuthenticated()]
-    #     return [permissions.IsAuthenticated()]
+        if self.request.method == 'POST':
+            return [IsCustomerAndAuthenticated()]
+        return [permissions.IsAuthenticated()]
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()

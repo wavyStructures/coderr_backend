@@ -8,7 +8,6 @@ from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from user_auth_app.models import CustomUser
 from user_auth_app.serializers import CustomUserSerializer
-
 from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomerProfileSerializer)
 
 class ProfileDetailView(APIView):
@@ -81,7 +80,8 @@ class CustomerListView(APIView):
 
     def get(self, request):
         customers = CustomUser.objects.filter(type="customer")
-        serializer = CustomUserSerializer(customers, many=True)
+        
+        serializer = CustomerProfileSerializer(customers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class BusinessListView(APIView):

@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 CustomUser  = get_user_model()
 
 class Review(models.Model):
-    # customer = models.ForeignKey(CustomUser, related_name='reviews', on_delete=models.CASCADE, limit_choices_to={'role': 'business'})
+    # customer = models.ForeignKey(CustomUser, related_name='reviews', on_delete=models.CASCADE, limit_choices_to={'type': 'business'})
     # offer = models.ForeignKey(Offer, related_name='reviews', on_delete=models.CASCADE)
     # order = models.ForeignKey(Order, related_name='reviews', on_delete=models.CASCADE)
     # order = models.ForeignKey(Order, related_name='reviews', null=True, blank=True, on_delete=models.SET_NULL)
@@ -16,11 +16,14 @@ class Review(models.Model):
    
     business_user = models.ForeignKey(
         CustomUser, related_name='received_reviews',
-        on_delete=models.CASCADE, limit_choices_to={'role': 'business'}
+        on_delete=models.CASCADE, limit_choices_to={'type': 'business'}, 
+        null=True
     )
+
     reviewer = models.ForeignKey(
         CustomUser, related_name='written_reviews',
-        on_delete=models.CASCADE, limit_choices_to={'role': 'customer'}
+        on_delete=models.CASCADE, limit_choices_to={'type': 'customer'},
+        null=True
     )
     rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
     description = models.TextField()
@@ -28,4 +31,7 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        # pass
         unique_together = ('business_user', 'reviewer')
+        
+        

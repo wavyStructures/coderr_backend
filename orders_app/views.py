@@ -62,6 +62,7 @@ class OrderDetailAPIView(APIView):
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+    
 from rest_framework.decorators import api_view
 from django.contrib.auth import get_user_model
 
@@ -70,9 +71,13 @@ User = get_user_model()
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def order_count(request, business_user_id):
-    user = get_object_or_404(User, pk=business_user_id, type='business')
+    try:
+        user = User.objects.get(pk=business_user_id, type='business')
+    except User.DoesNotExist:
+        return Response({'error':'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
     count = Order.objects.filter(business_user=user, status='in_progress').count()
     return Response({'order_count': count})
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

@@ -2,11 +2,9 @@ from django.apps import AppConfig
 from django.conf import settings
 from django.utils import timezone
 from django.db import connection
-
 from decimal import Decimal
 import random
 import sys
-
 
 class ProfileAppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -54,6 +52,74 @@ class ProfileAppConfig(AppConfig):
             print(f"{'Created' if created else 'Updated'} customer_user{i}")
 
         # Create or update business users
+        locations = ['Berlin', 'Munich', 'Hamburg', 'Cologne', 'Frankfurt', 'Stuttgart', 'Dresden', 'Leipzig']
+        predefined_locations = {
+            0: 'Berlin',
+            1: 'Munich',
+            2: 'Hamburg',
+            3: 'Leipzig',
+            4: 'Dresden',
+            5: 'Hamburg',
+            6: 'Berlin',
+            7: 'Munich',
+            8: 'Stuttgart',
+            9: 'Berlin',
+            10: 'Berlin',
+        }
+        descriptions = [
+            {
+                "text": "Hallo! Ich gestalte ein einzigartiges Logo, das deine Marke perfekt widerspiegelt – kreativ, einprägsam und maßgeschneidert für deinen Auftritt.",
+                "image": "offer_images/offer_image_0.png",
+            },
+            {
+                "text": "Mit gezielten Maßnahmen sorge ich dafür, dass deine Website bei Google besser gefunden wird – für mehr Sichtbarkeit und Reichweite.",
+                "image": "offer_images/offer_image_1.png",
+            },
+            {
+                "text": "Ob kleiner Shop oder große Plattform – ich baue dir einen sicheren und benutzerfreundlichen Online-Shop mit allen wichtigen Funktionen.",
+                "image": "offer_images/offer_image_2.png",
+            },
+            {
+                "text": "Ich erstelle dir eine moderne und responsive WordPress-Website, die du selbst leicht verwalten kannst – inklusive Design und Technik.",
+                "image": "offer_images/offer_image_3.png",
+            },
+            {
+                "text": "Langsame Website? Ich analysiere und verbessere die Ladezeit deiner Seite – für ein besseres Nutzererlebnis und Ranking.",
+                "image": "offer_images/offer_image_4.png",
+            },
+            {
+                "text": "Du brauchst mehr als eine einfache Website? Ich entwickle komplexe Web-Anwendungen nach deinen Anforderungen – funktional, skalierbar, durchdacht.",
+                "image": "offer_images/offer_image_5.png",
+            },
+            {
+                "text": "Deine Website ist veraltet? Ich überarbeite Design und Technik für einen frischen, zeitgemäßen Auftritt, der überzeugt.",
+                "image": "offer_images/offer_image_6.png",
+            },
+            {
+                "text": "Ich erstelle dir eine gezielte Landingpage, die dein Angebot perfekt in Szene setzt – ideal für Kampagnen und Werbung.",
+                "image": "offer_images/offer_image_7.png",
+            },
+            {
+                "text": "Ich baue dir eine Website, die mehrere Sprachen unterstützt – professionell übersetzt und benutzerfreundlich gestaltet.",
+                "image": "offer_images/offer_image_8.png",
+            },
+            {
+                "text": "Du bist dir nicht sicher, was du brauchst? Ich biete dir eine fundierte Beratung und helfe dir, die richtige Web-Lösung zu finden.",
+                "image": "offer_images/offer_image_9.png",
+            }
+        ]
+        working_hours = [
+            "Mo–Fr 09:00–17:00 Uhr",
+            "Mo–Mi 18:00–19:00 Uhr, Do–Fr 12:00–17:00 Uhr",
+            "Mo, Mi, Fr 10:00–14:00 Uhr",
+            "Di–Do 08:00–12:00 Uhr, Sa 09:00–11:00 Uhr",
+            "Mo–So 11:00–20:00 Uhr",
+            "Mo–Fr 14:00–18:00 Uhr, Sa 10:00–13:00 Uhr",
+            "Mo–Do 09:30–16:30 Uhr, Fr 09:00–12:00 Uhr",
+            "Di & Do 15:00–19:00 Uhr, Sa 10:00–12:00 Uhr",
+            "Nur nach Vereinbarung",
+            "Mo–Fr 07:00–15:00 Uhr, Wochenende geschlossen"
+        ]
         for i in range(10):
             user, created = User.objects.get_or_create(username=f'business_user{i}')
             user.email = f'business{i}@example.com'
@@ -61,6 +127,9 @@ class ProfileAppConfig(AppConfig):
             user.last_name = f'LastNameB{i}'
             user.type = 'business'
             
+            user.location = predefined_locations.get(i, random.choice(locations))
+            user.description = descriptions[i]
+            user.working_hours = working_hours[i]   
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
                 user.set_password('password123')
             
@@ -132,14 +201,15 @@ class ProfileAppConfig(AppConfig):
             print(f"Created/Updated Order {i + 1}")
 
         # Create sample reviews
+        reviewer: User.objects.filter(type='customer').order_by('?').first()
+        business_user: User.objects.filter(type='business').order_by('?').first()
+                    
         for i in range(10):
             Review.objects.update_or_create(
                 id=i + 1,  
                 defaults={
-                    'customer': User.objects.filter(type='customer').order_by('?').first(),  
-                    'offer': Offer.objects.order_by('?').first(),
                     'rating': random.randint(1, 5),
-                    'comment': f"This is a review comment for review {i+1}.",
+                    'description': f"This is a review comment for review {i+1}.",
                 }
             )
             print(f"Created/Updated Review {i + 1}")

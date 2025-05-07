@@ -4,14 +4,18 @@ from user_auth_app.models import CustomUser
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source='id', read_only=True)
+
     class Meta:
         model = CustomUser
         fields = [
-            "id", "username", "first_name", "last_name", "file",
+            "user",
+            # "id", 
+            "username", "first_name", "last_name", "file",
             "location", "tel", "description", "working_hours",
             "type", "email", "created_at"
         ]
-        read_only_fields = ["id", "username", "type", "created_at"]
+        read_only_fields = ["user", "username", "type", "created_at"]
 
    
     def update(self, instance, validated_data):
@@ -22,19 +26,23 @@ class ProfileSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source='id', read_only=True)
+
     class Meta:
         model = CustomUser
         fields = [
-            "id", "username", "first_name", "last_name",
+            "user", "username", "first_name", "last_name",
             "file", "location", "tel", "description",
             "working_hours", "type"
         ]
 
 # Minimal user data – useful for public info, cards, etc.
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source='id', read_only=True)
+
     class Meta:
         model = CustomUser
-        fields = ['pk', 'username', 'first_name', 'last_name', 'file', 'uploaded_at', 'type']
+        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'uploaded_at', 'type']
 
 
 

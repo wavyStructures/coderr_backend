@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='review',
             name='customer',
-            field=models.ForeignKey(limit_choices_to={'role': 'business'}, on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(limit_choices_to={'type': 'business'}, on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='review',
