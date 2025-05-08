@@ -1,3 +1,20 @@
-from django.test import TestCase
+from django.urls import reverse
+from rest_framework.test import APITestCase
+from rest_framework import status
+from .models import Offer
 
-# Create your tests here.
+class OfferListViewTest(APITestCase):
+    def test_offer_list_view(self):
+        url = reverse('offer-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        
+  class OfferDetailViewTest(APITestCase):
+    def setUp(self):
+        self.offer = Offer.objects.create(title="Test Offer", description="Test")
+
+    def test_offer_detail_view(self):
+        url = reverse('offer-detail-main', args=[self.offer.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
