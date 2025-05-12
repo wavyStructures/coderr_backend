@@ -6,3 +6,5 @@ urlpatterns = [
     path('<int:pk>/', ReviewDetailView.as_view(), name='review-detail'),
 ]
 
+
+

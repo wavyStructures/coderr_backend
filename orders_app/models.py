@@ -15,7 +15,6 @@ class Order(models.Model):
     business_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_orders', null=True, blank=True, limit_choices_to={'type': 'business'})
  
     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, null=True, blank=True)
-    # offer = models.ForeignKey(Offer, on_delete=models.CASCADE)
     order_date = models.DateTimeField(default=now)
     
     title = models.CharField(max_length=255)

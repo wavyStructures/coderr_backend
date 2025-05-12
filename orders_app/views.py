@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from rest_framework.views import APIView
+from rest_framework.views import APIView 
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
@@ -34,8 +34,6 @@ class OrderListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 class OrderDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -62,6 +60,9 @@ class OrderDetailAPIView(APIView):
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+
+    
     
 from rest_framework.decorators import api_view
 from django.contrib.auth import get_user_model
@@ -85,3 +86,4 @@ def completed_order_count(request, business_user_id):
     user = get_object_or_404(User, pk=business_user_id, type='business')
     count = Order.objects.filter(business_user=user, status='completed').count()
     return Response({'completed_order_count': count})
+

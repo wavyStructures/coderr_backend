@@ -18,11 +18,15 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'title', 'price',
-            'features', 'revisions', 'delivery_time_in_days', 'offer_type',
-            'status', 'created_at', 'updated_at', 'offer_detail_id'
+            'id', 'offer_detail_id', 'customer_user', 'business_user', 'title',
+            'features', 'revisions', 'delivery_time_in_days',  'price','features', 'offer_type',
+            'status', 'created_at', 'updated_at' 
         ]
-        read_only_fields = ["id", "status", "created_at", "updated_at"]
+        read_only_fields = [
+            'id', 'customer_user', 'business_user', 'title', 'revisions',
+            'delivery_time_in_days', 'price', 'features', 'offer_type',
+            'status', 'created_at', 'updated_at'
+        ]
 
     def validate_offer_detail_id(self, value):
         try:
@@ -34,26 +38,39 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         user = request.user
-        offer_detail = validated_data.pop('offer_detail_id')
-        offer = offer_detail.offer
-        # offer = validated_data['offer_detail_id']
 
         if user.type != 'customer':
             raise serializers.ValidationError("Only customers can place orders.")
         
+        offer_detail_id = validated_data.pop('offer_detail_id', None)
+        if not offer_detail_id:
+            raise serializers.ValidationError("Offer detail ID is missing.")
+        
+        
+        try:
+            offer_detail = OfferDetail.objects.select_related('offer', 'offer__user')
+        except OfferDetail.DoesNotExist:
+            raise serializers.ValidationError("Offer detail not found.")
+
+        # offer = offer_detail.offer
+        # business_user = offer.user
+        
         return Order.objects.create(
             customer_user=user,
-            business_user=offer.business_user,
-            offer=offer,
-            title=offer.title,
-            price=offer.price,
-            features=offer.features,
-            revisions=offer.revisions,
-            delivery_time_in_days=offer.delivery_time_in_days,
-            offer_type=offer.offer_type,
+            business_user=offer_detail.offer.user,
+            offer=offer_detail.offer,
+            
+            title=offer_detail.title,
+            price=offer_detail.price,
+            
+            features=offer_detail.features,
+            revisions=offer_detail.revisions,
+            delivery_time_in_days=offer_detail.delivery_time_in_days,
+            
+            offer_type=offer_detail.offer_type,
             status='in_progress',
         )
         
 
-        
+
         

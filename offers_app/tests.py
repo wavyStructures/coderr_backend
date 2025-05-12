@@ -10,11 +10,14 @@ class OfferListViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         
-  class OfferDetailViewTest(APITestCase):
+class OfferDetailViewTest(APITestCase):
     def setUp(self):
-        self.offer = Offer.objects.create(title="Test Offer", description="Test")
+        def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="pass")
+        self.offer = Offer.objects.create(title="Test Offer", description="Test", user=self.user)
 
     def test_offer_detail_view(self):
         url = reverse('offer-detail-main', args=[self.offer.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        

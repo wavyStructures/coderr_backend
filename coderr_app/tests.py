@@ -5,9 +5,9 @@ from rest_framework import status
 class BaseInfoViewTest(APITestCase):
         def test_base_info_view(self):
 
-        url = reverse('base-info')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+                url = reverse('base-info')
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 
