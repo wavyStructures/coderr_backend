@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.db.models import JSONField
 from django.utils.timezone import now
 from django.core.validators import RegexValidator
 
@@ -42,7 +43,9 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     tel = models.CharField(max_length=20, default="123456789")
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='customer')
-    description = models.CharField(max_length=500, null=True, blank=True, default="")
+    # description = models.CharField(max_length=500, null=True, blank=True, default="")
+    description = models.JSONField(null=True, blank=True, default=dict)
+
     working_hours = models.CharField(max_length=80, null=True, blank=True, default="")
     created_at = models.DateTimeField(default=now)
     

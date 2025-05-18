@@ -1,5 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
 from django.db.models import Avg
 from reviews_app.models import Review
 from offers_app.models import Offer
@@ -13,6 +15,9 @@ class BaseInfoView(APIView):
     average rating, number of business profiles, and number of offers.
     """
 
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
     def get(self, request):
         total_reviews = Review.objects.count()
         average_rating = Review.objects.aggregate(Avg('rating'))['rating__avg']

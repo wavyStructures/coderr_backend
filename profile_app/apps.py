@@ -128,7 +128,9 @@ class ProfileAppConfig(AppConfig):
             user.type = 'business'
             
             user.location = predefined_locations.get(i, random.choice(locations))
-            user.description = descriptions[i]
+            # user.description = descriptions[i]
+            user.description = descriptions[i % len(descriptions)]
+
             user.working_hours = working_hours[i]   
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
                 user.set_password('password123')

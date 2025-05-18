@@ -31,9 +31,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     def validate_offer_detail_id(self, value):
         try:
             offer_detail = OfferDetail.objects.get(pk=value)
-        except Offer.DoesNotExist:
+        except OfferDetail.DoesNotExist:
             raise serializers.ValidationError("Offer not found.")
-        return offer_detail
+        #TODO
+        # return offer_detail
+        return value
     
     def create(self, validated_data):
         request = self.context['request']
@@ -48,7 +50,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         
         
         try:
-            offer_detail = OfferDetail.objects.select_related('offer', 'offer__user')
+            offer_detail = OfferDetail.objects.select_related('offer', 'offer__user').get(pk=offer_detail_id)
         except OfferDetail.DoesNotExist:
             raise serializers.ValidationError("Offer detail not found.")
 

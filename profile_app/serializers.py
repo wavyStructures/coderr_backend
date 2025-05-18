@@ -42,7 +42,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'uploaded_at', 'type']
+        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'email', 'created_at', 'uploaded_at', 'type']
 
 
 

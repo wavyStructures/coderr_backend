@@ -10,7 +10,9 @@ class Offer(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='offer')
     title = models.CharField(max_length=200, default="sample title")
     image = models.ImageField(upload_to="offers/", null=True, blank=True, default=None)
-    description = models.TextField(default="sample description")
+    # description = models.TextField(default="sample description")
+    description = models.JSONField(default=dict)  # or use `default=lambda: {"text": "", "image": ""}`
+
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(default=now)
     min_price = models.DecimalField(max_digits=10, decimal_places=2, default=100)
