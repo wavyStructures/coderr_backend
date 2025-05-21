@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from offers_app.models import Offer
 from django.utils.timezone import now
+from django.core.validators import MinValueValidator
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -18,7 +19,8 @@ class Order(models.Model):
     order_date = models.DateTimeField(default=now)
     
     title = models.CharField(max_length=255)
-    revisions = models.PositiveIntegerField(default=0)
+    revisions = models.IntegerField(default=0,  validators=[MinValueValidator(-1)],
+    help_text="-1 for unlimited")    
     delivery_time_in_days = models.PositiveIntegerField(default=7)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     features = models.JSONField(default=list)

@@ -15,13 +15,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferDetail
         exclude = ["offer"]
-        # fields = '__all__'    
-    # def get_url(self, obj):
-    #     request = self.context.get("request")           
-    #     if request is None:
-    #         return None
-    #     return reverse("offer-detail-main", kwargs={"pk": obj.id}, request=request)
-
+        
 
     def get_url(self, obj):
         request = self.context.get("request")           
@@ -111,27 +105,31 @@ class OfferSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         """Create an offer and its related details."""
-        request = self.context.get("request")
-        user = request.user if request else None
         
-        if not user or user.type != "business":
-            raise serializers.ValidationError({"error": "Only business users can create offers."})
-        
-        details_data = validated_data.pop("details_input", [])
-        offer = Offer.objects.create(user=user, **validated_data)
-
-        detail_objs = []
-        for detail_data in details_data:
-            detail = OfferDetail.objects.create(offer=offer, **detail_data)
-            detail_objs.append(detail)
-
-        # Update min_price and min_delivery_time based on OfferDetails       
-        if detail_objs:
-            offer.min_price = min(d.price for d in detail_objs)
-            offer.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
-            offer.save()
+        try:
+            request = self.context.get("request")
+            user = request.user if request else None
             
-        return offer
+            if not user or user.type != "business":
+                raise serializers.ValidationError({"error": "Only business users can create offers."})
+            
+            details_data = validated_data.pop("details_input", [])
+            offer = Offer.objects.create(user=user, **validated_data)
+
+            detail_objs = []
+            for detail_data in details_data:
+                detail = OfferDetail.objects.create(offer=offer, **detail_data)
+                detail_objs.append(detail)
+
+            # Update min_price and min_delivery_time based on OfferDetails       
+            if detail_objs:
+                offer.min_price = min(d.price for d in detail_objs)
+                offer.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
+                offer.save()
+                
+            return offer
+        except Exception as e:
+            raise serializers.ValidationError({"internal_error": str(e)})
 
     def update(self, instance, validated_data):
         """
@@ -157,9 +155,6 @@ class OfferSerializer(serializers.ModelSerializer):
                 instance.min_price = min(d.price for d in detail_objs)
                 instance.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
                 instance.save()        
-        
-        
-        
-        
+
         return instance
 

@@ -32,8 +32,8 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             "user", "username", "first_name", "last_name",
-            "file", "location", "tel", "description",
-            "working_hours", "type"
+            "file", "location", "tel", "email", "description",
+            "working_hours", "type", 'created_at'
         ]
 
 # Minimal user data – useful for public info, cards, etc.

@@ -203,17 +203,39 @@ class ProfileAppConfig(AppConfig):
             print(f"Created/Updated Order {i + 1}")
 
         # Create sample reviews
-        reviewer: User.objects.filter(type='customer').order_by('?').first()
-        business_user: User.objects.filter(type='business').order_by('?').first()
-                    
-        for i in range(10):
-            Review.objects.update_or_create(
-                id=i + 1,  
-                defaults={
-                    'rating': random.randint(1, 5),
-                    'description': f"This is a review comment for review {i+1}.",
-                }
-            )
-            print(f"Created/Updated Review {i + 1}")
+        customer_users = list(User.objects.filter(type="customer"))
+        business_users = list(User.objects.filter(type="business"))
 
-        print("Sample data ensured.")
+        if customer_users and business_users:
+            used_pairs = set()                    
+            for i in range(10):
+                reviewer = random.choice(customer_users)
+                business_user = random.choice(business_users)
+                
+                if (reviewer.id, business_user.id) not in used_pairs:    
+                    used_pairs.add((reviewer.id, business_user.id))
+                
+                Review.objects.update_or_create(
+                    id=i + 1,  
+                    defaults={
+                        'business_user': business_user, 
+                        'reviewer': reviewer,
+                        'rating': random.randint(3, 5),
+                        'description': random.choice([
+                            "Sehr professioneller Service.",
+                            "Top Qualität und schnelle Lieferung!",
+                            "Würde ich definitiv weiterempfehlen.",
+                            "Freundlich, kompetent und zuverlässig.",
+                            "Hat alles perfekt geklappt!",
+                            "Sehr zufrieden mit dem Ergebnis.",
+                            "Sehr zufrieden mit dem Ergebnis.",
+                            f"Dies ist ein generischer Kommentar für Review {i+1}.",
+                            ])
+                    }
+                )
+                print(f"Created/Updated Review {i + 1}")
+                break
+            else:
+                attempts +=1 
+
+            print("Sample data ensured.")

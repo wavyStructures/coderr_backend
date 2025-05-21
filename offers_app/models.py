@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.timezone import now
 from django.conf import settings
+from django.core.validators import MinValueValidator
 
 
 class Offer(models.Model):
@@ -36,7 +37,8 @@ class OfferDetail(models.Model):
     offer = models.ForeignKey("Offer", on_delete=models.CASCADE, related_name='details')
     description = models.TextField(default="sample description")
     title = models.CharField(max_length=200, default="sample title")
-    revisions = models.PositiveIntegerField(default=0)
+    revisions = models.IntegerField(default=0,  validators=[MinValueValidator(-1)],
+    help_text="-1 for unlimited")
     delivery_time_in_days = models.PositiveIntegerField(default=30)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     features = models.JSONField(default=list)  
