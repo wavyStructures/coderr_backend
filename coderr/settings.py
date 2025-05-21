@@ -150,12 +150,7 @@ REST_FRAMEWORK = {
         'anon': '2500/day',
         'user': '2600/day',
         'question': '400/day', 
-        # 'question-get': '2/day',
-        # 'question-post': '2/day',
-        # 'question-put': '2/day',
-        # 'question-patch': '2/day',
-        # 'question-delete': '2/day',
-        # 'question-options': '10/day',
+
     },
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -166,4 +161,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': "rest_framework.pagination.PageNumberPagination",
     'PAGE_SIZE': 6,
 }
+
+import os
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 
