@@ -28,13 +28,44 @@ class ProfileAppConfig(AppConfig):
 
         User = get_user_model()     
         
-        # ✅ Check if the required table exists before querying the DB
+        # Check if required table exists before querying DB
         if 'user_auth_app_customuser' in connection.introspection.table_names():
             self.create_sample_data(User, Offer, Order, OfferDetail, Review)
         else:
             print("Skipping sample data creation — user table doesn't exist.")
 
     def create_sample_data(self, User, Offer, Order, OfferDetail, Review):
+        
+        # Create guest accounts
+        guest_accounts = {
+            "andrey": {
+                "type": "customer",
+                "first_name": "Andrey",
+                "last_name": "Guest",
+                "email": "andrey@example.com",
+                "password": "asdasd"
+            },
+            "kevin": {
+                "type": "business",
+                "first_name": "Kevin",
+                "last_name": "Guest",
+                "email": "kevin@example.com",
+                "password": "asdasd"
+            }
+        }
+
+        for username, data in guest_accounts.items():
+            user, created = User.objects.get_or_create(username=username)
+            user.first_name = data["first_name"]
+            user.last_name = data["last_name"]
+            user.email = data["email"]
+            user.type = data["type"]
+
+            if not user.password or not user.password.startswith('pbkdf2_sha256$'):
+                user.set_password(data["password"])
+
+            user.save()
+            print(f"{'Created' if created else 'Updated'} guest user '{username}'")
 
         # Create or update customer users
         for i in range(5):
