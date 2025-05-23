@@ -221,15 +221,29 @@ class ProfileAppConfig(AppConfig):
         for i in range(5):
             Order.objects.update_or_create(
                 id=i + 1,  
-                defaults={
+                 defaults={
                     'customer_user': User.objects.filter(type='customer').order_by('?').first(),
                     'business_user': User.objects.filter(type='business').order_by('?').first(),
-                    'offer': Offer.objects.order_by('?').first(),  
+                    # 'offer': offer,
                     'status': random.choice(['pending', 'completed', 'in_progress']),
-                    'price': offer.price if hasattr(offer, 'price') else Decimal('100.00'),
-                    'order_date': timezone.now(),
-                    'delivery_time_in_days': random.randint(3, 14),  
+                    'price': getattr(offer, 'price', Decimal('100.00')),
+                    'title': random.choice(['Logo Design', 'Flyer Design', 'Webseite']),
+                    'revisions': random.choice([1, 2, 3, -1]),
+                    # 'features': random.sample(sample_features, k=random.randint(1, 3)),
+                    'features': [],
+                    'offer_type': random.choice(['basic', 'standard', 'premium']),
+                    'delivery_time_in_days': random.randint(3, 14),
+                    # 'order_date': timezone.now(),
                 }
+                # defaults={
+                #     'customer_user': User.objects.filter(type='customer').order_by('?').first(),
+                #     'business_user': User.objects.filter(type='business').order_by('?').first(),
+                #     'offer': Offer.objects.order_by('?').first(),  
+                #     'status': random.choice(['pending', 'completed', 'in_progress']),
+                #     'price': offer.price if hasattr(offer, 'price') else Decimal('100.00'),
+                #     'order_date': timezone.now(),
+                #     'delivery_time_in_days': random.randint(3, 14),  
+                # }
             )
             print(f"Created/Updated Order {i + 1}")
 

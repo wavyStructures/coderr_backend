@@ -29,6 +29,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate_offer_detail_id(self, value):
+        from django.db.models import QuerySet
+        print("DEBUG: All OfferDetails:", OfferDetail.objects.values_list('id', flat=True))  # prints all IDs
+
         try:
             offer_detail = OfferDetail.objects.get(pk=value)
         except OfferDetail.DoesNotExist:
