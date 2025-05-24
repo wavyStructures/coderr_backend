@@ -21,7 +21,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Ensure only allowed fields can be updated."""
         # Optional: Prevent `email` from being updated unless explicitly allowed
-        validated_data.pop("email", None)  # Remove email updates for security reasons
+        # validated_data.pop("email", None)  # Remove email updates for security reasons
 
         return super().update(instance, validated_data)
 
