@@ -11,14 +11,9 @@ class ProfileAppConfig(AppConfig):
     name = 'profile_app'
     
     def ready(self):
-        # Avoid database operations during migration commands
         if "migrate" in sys.argv or "makemigrations" in sys.argv:
             return
-    
-        print("App is starting ... ensuring sample data exists.")
-        
-        
-        # Move model imports here to avoid AppRegistryNotReady error
+           
         from offers_app.models import Offer
         from offers_app.models import OfferDetail
 
@@ -28,7 +23,6 @@ class ProfileAppConfig(AppConfig):
 
         User = get_user_model()     
         
-        # Check if required table exists before querying DB
         if 'user_auth_app_customuser' in connection.introspection.table_names():
             self.create_sample_data(User, Offer, Order, OfferDetail, Review)
         else:
@@ -65,7 +59,6 @@ class ProfileAppConfig(AppConfig):
                 user.set_password(data["password"])
 
             user.save()
-            print(f"{'Created' if created else 'Updated'} guest user '{username}'")
 
         # Create or update customer users
         for i in range(5):
@@ -80,7 +73,6 @@ class ProfileAppConfig(AppConfig):
                 user.set_password('password123')
             
             user.save()
-            print(f"{'Created' if created else 'Updated'} customer_user{i}")
 
         # Create or update business users
         locations = ['Berlin', 'Munich', 'Hamburg', 'Cologne', 'Frankfurt', 'Stuttgart', 'Dresden', 'Leipzig']
@@ -167,7 +159,6 @@ class ProfileAppConfig(AppConfig):
                 user.set_password('password123')
             
             user.save()
-            print(f"{'Created' if created else 'Updated'} business_user{i}")
 
         # Create sample offers
         business_users = User.objects.filter(type="business")
@@ -215,8 +206,6 @@ class ProfileAppConfig(AppConfig):
             offer.min_delivery_time = min(delivery_times)
             offer.save()
 
-            print(f"{'Created' if created else 'Updated'} Offer {i}")
-
         # Create sample orders       
         for i in range(5):
             Order.objects.update_or_create(
@@ -224,28 +213,16 @@ class ProfileAppConfig(AppConfig):
                  defaults={
                     'customer_user': User.objects.filter(type='customer').order_by('?').first(),
                     'business_user': User.objects.filter(type='business').order_by('?').first(),
-                    # 'offer': offer,
                     'status': random.choice(['pending', 'completed', 'in_progress']),
                     'price': getattr(offer, 'price', Decimal('100.00')),
                     'title': random.choice(['Logo Design', 'Flyer Design', 'Webseite']),
                     'revisions': random.choice([1, 2, 3, -1]),
-                    # 'features': random.sample(sample_features, k=random.randint(1, 3)),
                     'features': [],
                     'offer_type': random.choice(['basic', 'standard', 'premium']),
                     'delivery_time_in_days': random.randint(3, 14),
-                    # 'order_date': timezone.now(),
                 }
-                # defaults={
-                #     'customer_user': User.objects.filter(type='customer').order_by('?').first(),
-                #     'business_user': User.objects.filter(type='business').order_by('?').first(),
-                #     'offer': Offer.objects.order_by('?').first(),  
-                #     'status': random.choice(['pending', 'completed', 'in_progress']),
-                #     'price': offer.price if hasattr(offer, 'price') else Decimal('100.00'),
-                #     'order_date': timezone.now(),
-                #     'delivery_time_in_days': random.randint(3, 14),  
-                # }
+
             )
-            print(f"Created/Updated Order {i + 1}")
 
         # Create sample reviews
         customer_users = list(User.objects.filter(type="customer"))
@@ -278,9 +255,7 @@ class ProfileAppConfig(AppConfig):
                             ])
                     }
                 )
-                print(f"Created/Updated Review {i + 1}")
                 break
             else:
                 attempts +=1 
 
-            print("Sample data ensured.")

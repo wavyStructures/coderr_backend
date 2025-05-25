@@ -80,9 +80,8 @@ class OfferSerializer(serializers.ModelSerializer):
         
         if request and request.parser_context:
             view = request.parser_context.get("view")
-            action = getattr(view, 'action', None)  # if using ViewSet
+            action = getattr(view, 'action', None)  
             if isinstance(view, APIView):
-                # Fallback: check view class
                 if view.__class__.__name__.lower().endswith("detailview"):
                     use_full = True
                 else:
@@ -95,7 +94,6 @@ class OfferSerializer(serializers.ModelSerializer):
             else:
                 fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
         else:
-            # Default to minimal if uncertain
             fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
 
         return fields

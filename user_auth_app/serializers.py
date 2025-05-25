@@ -20,7 +20,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "created_at"
         ]
                 
-        read_only_fields = ["id", "username", "email", "is_active"]  # Prevent users from modifying these
+        read_only_fields = ["id", "username", "email", "is_active"]   
 
     def update(self, instance, validated_data):
 
@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'required': False}  # Make email optional
+            'email': {'required': False}  
         }  
 
     def validate(self, data):
@@ -55,10 +55,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('repeated_password')
 
-        password = validated_data.pop('password')  # Extract plain password
-        user = CustomUser(**validated_data)        # Create user instance without saving
-        user.set_password(password)                # Hash the password properly
-        user.save()                                # Save to database
+        password = validated_data.pop('password')  
+        user = CustomUser(**validated_data)        
+        user.set_password(password)                
+        user.save()                                
 
         return user
   

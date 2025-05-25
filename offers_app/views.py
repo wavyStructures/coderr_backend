@@ -17,7 +17,6 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 class OfferListView(ListCreateAPIView):
-    # queryset = Offer.objects.all()
     serializer_class = OfferSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
@@ -38,12 +37,10 @@ class OfferListView(ListCreateAPIView):
             annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
 
-        # Handle ?creator_id=2
         creator_id = self.request.query_params.get('creator_id')
         if creator_id:
             qs = qs.filter(user__id=creator_id)
 
-        # Optional: filter for max_delivery_time
         max_delivery_time = self.request.query_params.get('max_delivery_time')
         if max_delivery_time:
             try:
@@ -51,12 +48,10 @@ class OfferListView(ListCreateAPIView):
             except ValueError:
                 pass
 
-        # Manually filter by user__user_type
         user_type = self.request.query_params.get('user_type')
         if user_type:
             qs = qs.filter(user__user_type=user_type)
 
-         # ✅ Filter by user__profile__location (assuming a OneToOne Profile model)
         location = self.request.query_params.get('location')
         if location:
             qs = qs.filter(user__profile__location__icontains=location)

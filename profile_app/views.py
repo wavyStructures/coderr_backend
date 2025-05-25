@@ -41,7 +41,6 @@ class ProfileDetailView(APIView):
             if request.user != user:
                 return Response({"error": "You do not have permission to edit this profile."}, status=status.HTTP_403_FORBIDDEN)
 
-            # choose serializer based on type
             if user.type == "business":
                 serializer = BusinessProfileSerializer(user, data=request.data, partial=True)
             elif user.type == "customer":

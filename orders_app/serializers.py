@@ -30,14 +30,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
     def validate_offer_detail_id(self, value):
         from django.db.models import QuerySet
-        print("DEBUG: All OfferDetails:", OfferDetail.objects.values_list('id', flat=True))  # prints all IDs
 
         try:
             offer_detail = OfferDetail.objects.get(pk=value)
         except OfferDetail.DoesNotExist:
             raise serializers.ValidationError("Offer not found.")
-        #TODO
-        # return offer_detail
         return value
     
     def create(self, validated_data):
@@ -56,9 +53,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             offer_detail = OfferDetail.objects.select_related('offer', 'offer__user').get(pk=offer_detail_id)
         except OfferDetail.DoesNotExist:
             raise serializers.ValidationError("Offer detail not found.")
-
-        # offer = offer_detail.offer
-        # business_user = offer.user
         
         return Order.objects.create(
             customer_user=user,

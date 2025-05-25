@@ -3,7 +3,6 @@ from .models import Review
 
 class ReviewSerializer(serializers.ModelSerializer):
     reviewer = serializers.ReadOnlyField(source='reviewer.id')
-    # user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Review

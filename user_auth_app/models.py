@@ -11,7 +11,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, username=username, tel=tel, **extra_fields)
-        user.set_password(password)  # Hash the password!
+        user.set_password(password)  
         user.save(using=self._db)
         return user
 
@@ -30,20 +30,18 @@ class CustomUser(AbstractUser):
         max_length=80,
         unique=True,
         validators=[RegexValidator(
-            regex=r"^[\w.@+\- ]+$",  # Allows spaces
+            regex=r"^[\w.@+\- ]+$",  
             message="Enter a valid username. Only letters, numbers, spaces, and @/./+/-/_ are allowed.",
             code="invalid"
         )]
     )
-    file = models.FileField(upload_to='profile_pictures/', null=True, blank=True 
-        # default='profile_pictures/default_profile_picture.jpg'
-        )
+    file = models.FileField(upload_to='profile_pictures/', null=True, blank=True)  
     uploaded_at = models.DateTimeField(null=True, blank=True) 
     location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)
     tel = models.CharField(max_length=20, default="123456789")
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='customer')
-    # description = models.CharField(max_length=500, null=True, blank=True, default="")
+    
     description = models.JSONField(null=True, blank=True, default=dict)
 
     working_hours = models.CharField(max_length=80, null=True, blank=True, default="")
@@ -54,11 +52,11 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
-    objects = CustomUserManager()  # ✅ Assign the custom manager here
+    objects = CustomUserManager()  
 
     def save(self, *args, **kwargs):
         if self.pk:
-            original = CustomUser.objects  # not used but leaving if needed
+            original = CustomUser.objects  
 
         if self.file and not self.uploaded_at:
             self.uploaded_at = now()

@@ -10,7 +10,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             "user",
-            # "id", 
             "username", "first_name", "last_name", "file",
             "location", "tel", "description", "working_hours",
             "type", "email", "created_at"
@@ -20,9 +19,6 @@ class ProfileSerializer(serializers.ModelSerializer):
    
     def update(self, instance, validated_data):
         """Ensure only allowed fields can be updated."""
-        # Optional: Prevent `email` from being updated unless explicitly allowed
-        # validated_data.pop("email", None)  # Remove email updates for security reasons
-
         return super().update(instance, validated_data)
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
@@ -36,7 +32,6 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "working_hours", "type", 'created_at'
         ]
 
-# Minimal user data – useful for public info, cards, etc.
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField(source='id', read_only=True)
 
