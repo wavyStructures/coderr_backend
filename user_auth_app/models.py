@@ -68,12 +68,6 @@ class CustomUser(AbstractUser):
 
         super().save(*args, **kwargs)
 
-    # def save(self, *args, **kwargs):
-    #     if self.username == "guest":
-    #         self.set_unusable_password()
-       
-    #     super().save(*args, **kwargs)
-
     def __str__(self):
         return self.email
 

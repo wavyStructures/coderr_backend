@@ -1,15 +1,18 @@
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
+from django.conf import settings
 from django.contrib.auth import authenticate
-from user_auth_app.serializers import CustomUserSerializer, RegisterSerializer
+
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from offers_app.models import Offer
 from orders_app.models import Order
 from reviews_app.models import Review
-from django.conf import settings
+from user_auth_app.serializers import CustomUserSerializer, RegisterSerializer
+
 
 CustomUser = settings.AUTH_USER_MODEL
        

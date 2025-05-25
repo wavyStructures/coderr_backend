@@ -47,8 +47,6 @@ class OfferUserDetailSerializer(serializers.ModelSerializer):
 class OfferSerializer(serializers.ModelSerializer):
     """Serializes Offer objects and dynamically chooses nested OfferDetails."""
     
-    # details = OfferMiniDetailSerializer(many=True, read_only=True)
-
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
     details_input = OfferDetailSerializer(many=True, write_only=True, required=False)
 
@@ -80,7 +78,6 @@ class OfferSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
         request = self.context.get("request")
         
-        # Try to detect if this is a list view or detail view
         if request and request.parser_context:
             view = request.parser_context.get("view")
             action = getattr(view, 'action', None)  # if using ViewSet
@@ -121,7 +118,6 @@ class OfferSerializer(serializers.ModelSerializer):
                 detail = OfferDetail.objects.create(offer=offer, **detail_data)
                 detail_objs.append(detail)
 
-            # Update min_price and min_delivery_time based on OfferDetails       
             if detail_objs:
                 offer.min_price = min(d.price for d in detail_objs)
                 offer.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
@@ -142,7 +138,6 @@ class OfferSerializer(serializers.ModelSerializer):
         instance.save()
         
         if details_data is not None:
-            # Optional: Clear existing details
             instance.details.all().delete()
 
             detail_objs = []
@@ -150,7 +145,6 @@ class OfferSerializer(serializers.ModelSerializer):
                 detail = OfferDetail.objects.create(offer=instance, **detail_data)
                 detail_objs.append(detail)
 
-            # Update min_price and min_delivery_time again
             if detail_objs:
                 instance.min_price = min(d.price for d in detail_objs)
                 instance.min_delivery_time = min(d.delivery_time_in_days for d in detail_objs)
