@@ -5,6 +5,7 @@ from user_auth_app.models import CustomUser
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField(source='id', read_only=True)
+    file = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = CustomUser
@@ -23,6 +24,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField(source='id', read_only=True)
+    file = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = CustomUser

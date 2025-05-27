@@ -36,6 +36,8 @@ class CustomUser(AbstractUser):
         )]
     )
     file = models.FileField(upload_to='profile_pictures/', null=True, blank=True)  
+    
+    
     uploaded_at = models.DateTimeField(null=True, blank=True) 
     location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)

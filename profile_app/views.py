@@ -9,10 +9,12 @@ from django.shortcuts import get_object_or_404
 from user_auth_app.models import CustomUser
 from user_auth_app.serializers import CustomUserSerializer
 from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomerProfileSerializer)
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class ProfileDetailView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+    parser_classes = [MultiPartParser, FormParser]
     
     def get_object(self, pk):
         return get_object_or_404(CustomUser, pk=pk)
