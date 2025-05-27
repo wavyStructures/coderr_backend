@@ -6,8 +6,8 @@ from orders_app.views import order_count, completed_order_count
 
 urlpatterns = [
     path('', include('user_auth_app.urls')),
-    
-    path('profiles/', include('profile_app.urls')),
+    path('profile/', include('profile_app.detail_urls')), 
+    path('profiles/', include('profile_app.list_urls')),   
     
     path('offers/', include('offers_app.urls')),
     path('offerdetails/<int:pk>/', OfferDetailRetrieveView.as_view(), name='offer-detail-retrieve'), 
