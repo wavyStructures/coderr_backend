@@ -48,7 +48,7 @@ class OfferSerializer(serializers.ModelSerializer):
     """Serializes Offer objects and dynamically chooses nested OfferDetails."""
     
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
-    details_input = OfferDetailSerializer(many=True, write_only=True, required=False)
+    details = OfferDetailSerializer(many=True, write_only=True, required=False)
 
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
@@ -60,7 +60,6 @@ class OfferSerializer(serializers.ModelSerializer):
             "id", "user", "title", "image", "description",
             "created_at", "updated_at", 
             "details",
-            "details_input",
             "min_price", 
             "min_delivery_time",
             "user_details"
@@ -74,30 +73,28 @@ class OfferSerializer(serializers.ModelSerializer):
         return obj.min_delivery_time    
     
     def get_fields(self):
-        """Dynamically swap the `details` serializer based on context (view type)."""
         fields = super().get_fields()
         request = self.context.get("request")
-        
-        if request and request.parser_context:
-            view = request.parser_context.get("view")
-            action = getattr(view, 'action', None)  
+
+        if request and request.method in ("POST", "PUT", "PATCH"):
+            # write mode → accept incoming details
+            fields["details"] = OfferDetailSerializer(many=True, write_only=True, required=False)
+        else:
+            # read mode → return details
+            view = request.parser_context.get("view") if request and request.parser_context else None
+            action = getattr(view, 'action', None)
+
+            use_full = False
             if isinstance(view, APIView):
                 if view.__class__.__name__.lower().endswith("detailview"):
                     use_full = True
-                else:
-                    use_full = False
             else:
                 use_full = (action == "retrieve")
 
-            if use_full:
-                fields["details"] = OfferDetailSerializer(many=True, read_only=True)
-            else:
-                fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
-        else:
-            fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
+            fields["details"] = OfferDetailSerializer(many=True, read_only=True) if use_full else OfferMiniDetailSerializer(many=True, read_only=True)
 
         return fields
-    
+        
     def create(self, validated_data):
         """Create an offer and its related details."""
         
@@ -108,7 +105,7 @@ class OfferSerializer(serializers.ModelSerializer):
             if not user or user.type != "business":
                 raise serializers.ValidationError({"error": "Only business users can create offers."})
             
-            details_data = validated_data.pop("details_input", [])
+            details_data = validated_data.pop("details", [])
             offer = Offer.objects.create(user=user, **validated_data)
 
             detail_objs = []
@@ -129,7 +126,7 @@ class OfferSerializer(serializers.ModelSerializer):
         """
         Allow partial updates to an offer and its related details.
         """
-        details_data = validated_data.pop("details_input", None)
+        details_data = validated_data.pop("details", None)
         
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

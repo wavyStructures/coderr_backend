@@ -161,6 +161,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': "rest_framework.pagination.PageNumberPagination",
     'PAGE_SIZE': 6,
+
+    'EXCEPTION_HANDLER': 'coderr.exceptions.custom_exception_handler'
 }
 
 import os

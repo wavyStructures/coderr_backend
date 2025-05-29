@@ -24,7 +24,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        allowed_fields = {"first_name", "last_name", "tel", "file"}
+        allowed_fields = {
+            "first_name", "last_name", "tel", "file", 
+            "location", "description", "working_hours"
+        }
+        
         for field in list(validated_data.keys()):
             if field not in allowed_fields:
                 validated_data.pop(field)
@@ -32,6 +36,31 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class FlattenedUserSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    username = serializers.CharField(source='user.username')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'user',  
+            'username',
+            'first_name',
+            'last_name',
+            'file',
+            'location',
+            'tel',
+            'description',
+            'working_hours',
+            'type'
+        ]
+
+    def get_user(self, obj):
+        return obj.user.id 
+
+    
 class RegisterSerializer(serializers.ModelSerializer):
     repeated_password = serializers.CharField(write_only=True, required=True) 
 

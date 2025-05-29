@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from rest_framework.settings import api_settings
 from rest_framework import generics, filters, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Review
@@ -8,11 +9,26 @@ from .permissions import IsReviewerOrReadOnly, IsCustomerAndAuthenticated
 class ReviewListCreateView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    pagination_class = None
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['business_user', 'reviewer']
     search_fields = ['description']
     ordering_fields = ['rating', 'updated_at']
 
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+        
+    #     offer_id = self.request.query_params.get('offer')
+    #     if offer_id is not None:
+    #         from offers_app.models import Offer
+    #         try:
+    #             offer = Offer.objects.get(pk=offer_id)
+    #             queryset = queryset.filter(business_user=offer.business_user)
+    #         except Offer.DoesNotExist:
+    #             return Review.objects.none()
+
+    #     return queryset            
+    
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)
 
@@ -25,3 +41,4 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticated, IsReviewerOrReadOnly]
+

@@ -92,43 +92,33 @@ class ProfileAppConfig(AppConfig):
         descriptions = [
             {
                 "text": "Hallo! Ich gestalte ein einzigartiges Logo, das deine Marke perfekt widerspiegelt – kreativ, einprägsam und maßgeschneidert für deinen Auftritt.",
-                "image": "offer_images/offer_image_0.png",
             },
             {
                 "text": "Mit gezielten Maßnahmen sorge ich dafür, dass deine Website bei Google besser gefunden wird – für mehr Sichtbarkeit und Reichweite.",
-                "image": "offer_images/offer_image_1.png",
             },
             {
                 "text": "Ob kleiner Shop oder große Plattform – ich baue dir einen sicheren und benutzerfreundlichen Online-Shop mit allen wichtigen Funktionen.",
-                "image": "offer_images/offer_image_2.png",
             },
             {
                 "text": "Ich erstelle dir eine moderne und responsive WordPress-Website, die du selbst leicht verwalten kannst – inklusive Design und Technik.",
-                "image": "offer_images/offer_image_3.png",
             },
             {
                 "text": "Langsame Website? Ich analysiere und verbessere die Ladezeit deiner Seite – für ein besseres Nutzererlebnis und Ranking.",
-                "image": "offer_images/offer_image_4.png",
             },
             {
                 "text": "Du brauchst mehr als eine einfache Website? Ich entwickle komplexe Web-Anwendungen nach deinen Anforderungen – funktional, skalierbar, durchdacht.",
-                "image": "offer_images/offer_image_5.png",
             },
             {
                 "text": "Deine Website ist veraltet? Ich überarbeite Design und Technik für einen frischen, zeitgemäßen Auftritt, der überzeugt.",
-                "image": "offer_images/offer_image_6.png",
             },
             {
                 "text": "Ich erstelle dir eine gezielte Landingpage, die dein Angebot perfekt in Szene setzt – ideal für Kampagnen und Werbung.",
-                "image": "offer_images/offer_image_7.png",
             },
             {
                 "text": "Ich baue dir eine Website, die mehrere Sprachen unterstützt – professionell übersetzt und benutzerfreundlich gestaltet.",
-                "image": "offer_images/offer_image_8.png",
             },
             {
                 "text": "Du bist dir nicht sicher, was du brauchst? Ich biete dir eine fundierte Beratung und helfe dir, die richtige Web-Lösung zu finden.",
-                "image": "offer_images/offer_image_9.png",
             }
         ]
         working_hours = [
