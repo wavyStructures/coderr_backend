@@ -9,12 +9,13 @@ from django.shortcuts import get_object_or_404
 from user_auth_app.models import CustomUser
 from user_auth_app.serializers import CustomUserSerializer
 from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomerProfileSerializer)
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
 
 class ProfileDetailView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     
     def get_object(self, pk):
         return get_object_or_404(CustomUser, pk=pk)
@@ -46,21 +47,30 @@ class ProfileDetailView(APIView):
             if user.type == "business":
                 serializer = BusinessProfileSerializer(user, data=request.data, partial=True)
             elif user.type == "customer":
-                serializer = ProfileSerializer(user, data=request.data, partial=True)
+                serializer = CustomerProfileSerializer(user, data=request.data, partial=True)
             else:
                 return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
             
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                print(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            if not serializer.is_valid():
+                print(serializer.errors)  # <== helpful for debugging
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except NotFound:
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
         
+        # except Exception as e:
+        #     return Response({"error": "An expected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
-            return Response({"error": "An expected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+            import traceback
+            traceback.print_exc()  # This prints full error to console
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def delete(self, request, pk):
         try: 
             user = self.get_object(pk)
