@@ -10,18 +10,35 @@ CustomUser = get_user_model()
 class OfferDetailSerializer(serializers.ModelSerializer):
     """Serializes individual offer details."""
 
-    url = serializers.SerializerMethodField()
+    # url = serializers.SerializerMethodField()
+    features = serializers.ListField(
+        child=serializers.CharField(), allow_empty=True
+    )
+    price = serializers.FloatField()
 
     class Meta:
         model = OfferDetail
-        exclude = ["offer"]
-        
 
+        fields = [
+            "id", "title", "description", "revisions",
+            "delivery_time_in_days", "price", "features", "offer_type"
+        ]
+        
     def get_url(self, obj):
         request = self.context.get("request")           
         if request is None:
             return None
         return reverse("offer-detail-retrieve", kwargs={"pk": obj.id}, request=request)
+
+class PublicOfferSerializer(serializers.ModelSerializer):
+    details = OfferDetailSerializer(many=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            "id", "title", "image", "description", "details"
+        ]
+
 
 class OfferMiniDetailSerializer(serializers.ModelSerializer):
     """Serializes individual offer details."""
@@ -78,9 +95,8 @@ class OfferSerializer(serializers.ModelSerializer):
 
         if request and request.method in ("POST", "PUT", "PATCH"):
             # write mode → accept incoming details
-            fields["details"] = OfferDetailSerializer(many=True, write_only=True, required=False)
+            fields["details"] = OfferDetailSerializer(many=True)
         else:
-            # read mode → return details
             view = request.parser_context.get("view") if request and request.parser_context else None
             action = getattr(view, 'action', None)
 
@@ -102,7 +118,10 @@ class OfferSerializer(serializers.ModelSerializer):
             request = self.context.get("request")
             user = request.user if request else None
             
-            if not user or user.type != "business":
+            print(user)
+            print(user.user_type)
+            
+            if not user or user.user_type != "business":
                 raise serializers.ValidationError({"error": "Only business users can create offers."})
             
             details_data = validated_data.pop("details", [])

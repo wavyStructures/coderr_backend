@@ -6,6 +6,6 @@ class IsReviewerOrReadOnly(permissions.BasePermission):
 
 class IsCustomerAndAuthenticated(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.type == 'customer'
+        return request.user.is_authenticated and request.user.user_type == 'customer'
     
          

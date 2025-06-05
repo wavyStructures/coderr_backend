@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.db import connection
 from decimal import Decimal
+import os
 import random
 import sys
 
@@ -12,6 +13,9 @@ class ProfileAppConfig(AppConfig):
     
     def ready(self):
         if "migrate" in sys.argv or "makemigrations" in sys.argv:
+            return
+        
+        if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') != 'true':
             return
            
         from offers_app.models import Offer
@@ -33,14 +37,14 @@ class ProfileAppConfig(AppConfig):
         # Create guest accounts
         guest_accounts = {
             "andrey": {
-                "type": "customer",
+                "user_type": "customer",
                 "first_name": "Andrey",
                 "last_name": "Guest",
                 "email": "andrey@example.com",
                 "password": "asdasd"
             },
             "kevin": {
-                "type": "business",
+                "user_type": "business",
                 "first_name": "Kevin",
                 "last_name": "Guest",
                 "email": "kevin@example.com",
@@ -53,7 +57,7 @@ class ProfileAppConfig(AppConfig):
             user.first_name = data["first_name"]
             user.last_name = data["last_name"]
             user.email = data["email"]
-            user.type = data["type"]
+            user.user_type = data["user_type"]
 
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
                 user.set_password(data["password"])
@@ -66,7 +70,7 @@ class ProfileAppConfig(AppConfig):
             user.first_name = f'Customer{i}'
             user.last_name = f'LastNameC{i}'
             user.email = f'customer{i}@example.com'
-            user.type = 'customer'
+            user.user_type = 'customer'
             
             # Only hash and set password if needed
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
@@ -138,7 +142,7 @@ class ProfileAppConfig(AppConfig):
             user.email = f'business{i}@example.com'
             user.first_name = f'Business{i}'
             user.last_name = f'LastNameB{i}'
-            user.type = 'business'
+            user.user_type = 'business'
             
             user.location = predefined_locations.get(i, random.choice(locations))
             # user.description = descriptions[i]
@@ -151,12 +155,12 @@ class ProfileAppConfig(AppConfig):
             user.save()
 
         # Create sample offers
-        business_users = User.objects.filter(type="business")
+        business_users = User.objects.filter(user_type="business")
         if business_users.exists():
-            some_user_instance = business_users.first()  # Get the first business user
+            some_user_instance = business_users.first()  
         else:
-            some_user_instance = None  # Handle this case appropriately, maybe create a default user?
-
+            some_user_instance = None  
+            
         OfferDetail.objects.all().delete()
 
         for i in range(10):
@@ -196,13 +200,21 @@ class ProfileAppConfig(AppConfig):
             offer.min_delivery_time = min(delivery_times)
             offer.save()
 
-        # Create sample orders       
+        # Create sample orders
+
+        customer = User.objects.filter(user_type='customer').order_by('?').first()
+        business = User.objects.filter(user_type='business').order_by('?').first()
+
+        if not customer or not business:
+            print("Skipping order creation: customer or business user not found.")
+            return 
+                   
         for i in range(5):
             Order.objects.update_or_create(
                 id=i + 1,  
                  defaults={
-                    'customer_user': User.objects.filter(type='customer').order_by('?').first(),
-                    'business_user': User.objects.filter(type='business').order_by('?').first(),
+                    'customer_user': User.objects.filter(user_type='customer').order_by('?').first(),
+                    'business_user': User.objects.filter(user_type='business').order_by('?').first(),
                     'status': random.choice(['pending', 'completed', 'in_progress']),
                     'price': getattr(offer, 'price', Decimal('100.00')),
                     'title': random.choice(['Logo Design', 'Flyer Design', 'Webseite']),
@@ -215,23 +227,34 @@ class ProfileAppConfig(AppConfig):
             )
 
         # Create sample reviews
-        customer_users = list(User.objects.filter(type="customer"))
-        business_users = list(User.objects.filter(type="business"))
+        customer_users = list(User.objects.filter(user_type="customer"))
+        business_users = list(User.objects.filter(user_type="business"))
+
+        if not customer_users or not business_users:
+            print("Skipping reviews: missing customer or business users.")
+            return 
 
         if customer_users and business_users:
-            used_pairs = set()                    
-            for i in range(10):
+            used_pairs = set()
+            max_reviews = 10
+            created = 0
+            attempts = 0
+
+            while created < max_reviews and attempts < 100:
                 reviewer = random.choice(customer_users)
                 business_user = random.choice(business_users)
-                
-                if (reviewer.id, business_user.id) not in used_pairs:    
-                    used_pairs.add((reviewer.id, business_user.id))
-                
+                pair = (reviewer.id, business_user.id)
+
+                if pair in used_pairs:
+                    attempts += 1
+                    continue
+
+                used_pairs.add(pair)
+
                 Review.objects.update_or_create(
-                    id=i + 1,  
+                    reviewer=reviewer,
+                    business_user=business_user,
                     defaults={
-                        'business_user': business_user, 
-                        'reviewer': reviewer,
                         'rating': random.randint(3, 5),
                         'description': random.choice([
                             "Sehr professioneller Service.",
@@ -240,12 +263,39 @@ class ProfileAppConfig(AppConfig):
                             "Freundlich, kompetent und zuverlässig.",
                             "Hat alles perfekt geklappt!",
                             "Sehr zufrieden mit dem Ergebnis.",
-                            "Sehr zufrieden mit dem Ergebnis.",
-                            f"Dies ist ein generischer Kommentar für Review {i+1}.",
-                            ])
+                            f"Dies ist ein generischer Kommentar für Review {created+1}.",
+                        ])
                     }
                 )
-                break
-            else:
-                attempts +=1 
+                created += 1
+                     
+                   
+            # for i in range(10):
+            #     reviewer = random.choice(customer_users)
+            #     business_user = random.choice(business_users)
+                
+            #     if (reviewer.id, business_user.id) not in used_pairs:    
+            #         used_pairs.add((reviewer.id, business_user.id))
+                
+            #     Review.objects.update_or_create(
+            #         id=i + 1,  
+            #         defaults={
+            #             'business_user': business_user, 
+            #             'reviewer': reviewer,
+            #             'rating': random.randint(3, 5),
+            #             'description': random.choice([
+            #                 "Sehr professioneller Service.",
+            #                 "Top Qualität und schnelle Lieferung!",
+            #                 "Würde ich definitiv weiterempfehlen.",
+            #                 "Freundlich, kompetent und zuverlässig.",
+            #                 "Hat alles perfekt geklappt!",
+            #                 "Sehr zufrieden mit dem Ergebnis.",
+            #                 "Sehr zufrieden mit dem Ergebnis.",
+            #                 f"Dies ist ein generischer Kommentar für Review {i+1}.",
+            #                 ])
+            #         }
+            #     )
+            #     break
+            # else:
+            #     attempts +=1 
 

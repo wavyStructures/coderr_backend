@@ -24,9 +24,9 @@ class ProfileDetailView(APIView):
         try:
             user = self.get_object(pk)
             
-            if user.type == "business":
+            if user.user_type == "business":
                 serializer = BusinessProfileSerializer(user)
-            elif user.type == "customer":
+            elif user.user_type == "customer":
                 serializer = CustomerProfileSerializer(user)
             else:
                 return Response({"error": "Unsupported user type"}, status=status.HTTP_400_BAD_REQUEST)
@@ -44,9 +44,9 @@ class ProfileDetailView(APIView):
             if request.user != user:
                 return Response({"error": "You do not have permission to edit this profile."}, status=status.HTTP_403_FORBIDDEN)
 
-            if user.type == "business":
+            if user.user_type == "business":
                 serializer = BusinessProfileSerializer(user, data=request.data, partial=True)
-            elif user.type == "customer":
+            elif user.user_type == "customer":
                 serializer = CustomerProfileSerializer(user, data=request.data, partial=True)
             else:
                 return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
@@ -90,7 +90,7 @@ class CustomerListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        customers = CustomUser.objects.filter(type="customer")
+        customers = CustomUser.objects.filter(user_type="customer")
         
         serializer = CustomerProfileSerializer(customers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -99,6 +99,6 @@ class BusinessListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        businesses = CustomUser.objects.filter(type="business")
+        businesses = CustomUser.objects.filter(user_type="business")
         serializer = BusinessProfileSerializer(businesses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

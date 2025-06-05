@@ -12,8 +12,8 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
  
-    customer_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', limit_choices_to={'type': 'customer'})
-    business_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_orders', null=True, blank=True, limit_choices_to={'type': 'business'})
+    customer_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', limit_choices_to={'user_type': 'customer'})
+    business_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_orders', null=True, blank=True, limit_choices_to={'user_type': 'business'})
  
     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, null=True, blank=True)
     order_date = models.DateTimeField(default=now)
