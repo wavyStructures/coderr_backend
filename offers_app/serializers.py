@@ -8,9 +8,7 @@ from django.contrib.auth import get_user_model
 CustomUser = get_user_model()
 
 class OfferDetailSerializer(serializers.ModelSerializer):
-    """Serializes individual offer details."""
 
-    # url = serializers.SerializerMethodField()
     features = serializers.ListField(
         child=serializers.CharField(), allow_empty=True
     )
@@ -30,6 +28,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             return None
         return reverse("offer-detail-retrieve", kwargs={"pk": obj.id}, request=request)
 
+
 class PublicOfferSerializer(serializers.ModelSerializer):
     details = OfferDetailSerializer(many=True)
 
@@ -39,21 +38,45 @@ class PublicOfferSerializer(serializers.ModelSerializer):
             "id", "title", "image", "description", "details"
         ]
 
+    def create(self, validated_data):
+        details_data = validated_data.pop("details", [])
+        request = self.context.get("request")
+        user = request.user if request else None
+
+        if not user or user.user_type != "business":
+            raise serializers.ValidationError({"error": "Only business users can create offers."})
+
+        offer = Offer.objects.create(user=user, **validated_data)
+
+        for detail_data in details_data:
+            OfferDetail.objects.create(offer=offer, **detail_data)
+
+        return offer
 
 class OfferMiniDetailSerializer(serializers.ModelSerializer):
-    """Serializes individual offer details."""
-
     url = serializers.SerializerMethodField()
 
     class Meta:
         model = OfferDetail
         fields = ["id", "url"]
-    
+        
     def get_url(self, obj):
-        request = self.context.get("request")           
-        if request is None:
-            return None
-        return reverse("offer-detail-main", kwargs={"pk": obj.id}, request=request)
+        return f"/offerdetails/{obj.id}/"
+
+class OfferMiniDetailAbsoluteSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetail
+        fields = ["id", "url"]
+
+    def get_url(self, obj):
+        request = self.context.get("request")
+        if request:
+            return request.build_absolute_uri(
+                reverse("offer-detail-retrieve", kwargs={"pk": obj.id}, request=request)
+            )
+        return reverse("offer-detail-retrieve", kwargs={"pk": obj.id})
 
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
@@ -61,8 +84,8 @@ class OfferUserDetailSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ["first_name", "last_name", "username"]
         
+        
 class OfferSerializer(serializers.ModelSerializer):
-    """Serializes Offer objects and dynamically chooses nested OfferDetails."""
     
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
     details = OfferDetailSerializer(many=True, write_only=True, required=False)
@@ -165,4 +188,13 @@ class OfferSerializer(serializers.ModelSerializer):
                 instance.save()        
 
         return instance
+
+
+class OfferRetrieveSerializer(OfferSerializer):
+    details = OfferMiniDetailAbsoluteSerializer(many=True, read_only=True)
+
+    class Meta(OfferSerializer.Meta):
+        pass  # Use same fields, just override details serializer
+    
+    
 

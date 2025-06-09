@@ -16,16 +16,21 @@ class OrderListCreateAPIView(APIView):
     
     def get(self, request):
         user = request.user
-        orders = Order.objects.filter(
-            Q(customer_user=user) | Q(business_user=user)
-        )
+        
+        if user.is_superuser:
+            orders = Order.objects.all()
+        else:
+            orders = Order.objects.filter(
+                Q(customer_user=user) | Q(business_user=user)
+            )
+
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
         serializer = OrderCreateSerializer(data=request.data, context={'request': request})
 
-        if request.user.type != 'customer':
+        if request.user.user_type != 'customer':
             raise PermissionDenied("Only customers can place orders.")
         if serializer.is_valid():
             order = serializer.save()
