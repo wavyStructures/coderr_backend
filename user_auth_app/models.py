@@ -56,14 +56,9 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()  
 
     def save(self, *args, **kwargs):
-        # if self.pk:
-        #     original = CustomUser.objects  
 
         if self.file and not self.uploaded_at:
             self.uploaded_at = now()
-
-        # if self.username == "guest":
-        #     self.set_unusable_password()
 
         super().save(*args, **kwargs)
 

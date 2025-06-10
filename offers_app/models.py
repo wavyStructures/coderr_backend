@@ -10,7 +10,6 @@ class Offer(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='offer')
     title = models.CharField(max_length=200, default="sample title")
     image = models.ImageField(upload_to="offers/", null=True, blank=True, default=None)
-    # description = models.JSONField(default=dict)  
     description = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(default=now, editable=False)
