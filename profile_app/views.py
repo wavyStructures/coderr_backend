@@ -59,18 +59,18 @@ class ProfileDetailView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             if not serializer.is_valid():
-                print(serializer.errors)  # <== helpful for debugging
+                print(serializer.errors)  
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except NotFound:
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        # except Exception as e:
-        #     return Response({"error": "An expected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             import traceback
-            traceback.print_exc()  # This prints full error to console
+            traceback.print_exc()  
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
     def delete(self, request, pk):
         try: 
             user = self.get_object(pk)

@@ -145,7 +145,6 @@ class ProfileAppConfig(AppConfig):
             user.type = 'business'
             
             user.location = predefined_locations.get(i, random.choice(locations))
-            # user.description = descriptions[i]
             user.description = descriptions[i % len(descriptions)]
 
             user.working_hours = working_hours[i]   
@@ -205,30 +204,11 @@ class ProfileAppConfig(AppConfig):
                 prices.append(price)
                 delivery_times.append(delivery_time_in_days)         
 
-            
-            # for j, offer_type in enumerate(offer_types):  # Create 3 details per offer
-            #     price = random.randint(50, 200)
-            #     delivery_time_in_days = random.randint(1, 14)
-
-            #     OfferDetail.objects.create(
-            #         offer=offer,
-            #         offer_type=offer_type,
-            #         price=price,
-            #         delivery_time_in_days=delivery_time_in_days,
-            #         title=f"{offer_type.capitalize()} Package",
-            #         description=f"Detail{j+1} for offer{i}"
-            #     )
-
-            #     prices.append(price)
-            #     delivery_times.append(delivery_time_in_days)
-
-            # Set the new annotated fields
             offer.min_price = min(prices)
             offer.min_delivery_time = min(delivery_times)
             offer.save()
 
         # Create sample orders
-
         customer = User.objects.filter(type='customer').order_by('?').first()
         business = User.objects.filter(type='business').order_by('?').first()
 

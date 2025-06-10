@@ -117,7 +117,6 @@ class OfferSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
 
         if request and request.method in ("POST", "PUT", "PATCH"):
-            # write mode → accept incoming details
             fields["details"] = OfferDetailSerializer(many=True)
         else:
             view = request.parser_context.get("view") if request and request.parser_context else None

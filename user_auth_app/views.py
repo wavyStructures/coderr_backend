@@ -85,13 +85,13 @@ class LoginView(APIView):
         }, status=status.HTTP_200_OK)
         
 
-from rest_framework.permissions import AllowAny  # 👈 import this
+from rest_framework.permissions import AllowAny  
 
 class TestErrorView(APIView):
-    permission_classes = [AllowAny]  # 👈 make this view public
+    permission_classes = [AllowAny]  
 
     def get(self, request):
-        raise Exception("This is a test exception!")  # 👈 triggers 500
+        raise Exception("This is a test exception!")  
 
 
 

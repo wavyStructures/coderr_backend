@@ -11,9 +11,3 @@ class BaseInfoViewTest(APITestCase):
 
 
 
-# class BaseInfoViewTest(APITestCase):
-#     def test_base_info_view(self):
-#         url = reverse('base-info')
-#         response = self.client.get(url)
-#         self.assertEqual(response.status_code, 200)
-

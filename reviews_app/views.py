@@ -13,21 +13,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['business_user', 'reviewer']
     search_fields = ['description']
-    ordering_fields = ['rating', 'updated_at']
-
-    # def get_queryset(self):
-    #     queryset = super().get_queryset()
-        
-    #     offer_id = self.request.query_params.get('offer')
-    #     if offer_id is not None:
-    #         from offers_app.models import Offer
-    #         try:
-    #             offer = Offer.objects.get(pk=offer_id)
-    #             queryset = queryset.filter(business_user=offer.business_user)
-    #         except Offer.DoesNotExist:
-    #             return Review.objects.none()
-
-    #     return queryset            
+    ordering_fields = ['rating', 'updated_at']  
     
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)
