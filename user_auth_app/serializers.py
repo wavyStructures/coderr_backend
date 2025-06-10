@@ -15,7 +15,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "tel", 
             "description",
             "working_hours",
-            "user_type",  
+            "type",  
             "email",
             "created_at"
         ]
@@ -54,7 +54,7 @@ class FlattenedUserSerializer(serializers.ModelSerializer):
             'tel',
             'description',
             'working_hours',
-            'user_type'
+            'type'
         ]
 
     def get_user(self, obj):
@@ -66,7 +66,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'repeated_password', 'user_type']
+        fields = ['username', 'email', 'password', 'repeated_password', 'type']
         
         extra_kwargs = {
             'password': {'write_only': True},

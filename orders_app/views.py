@@ -30,7 +30,7 @@ class OrderListCreateAPIView(APIView):
     def post(self, request):
         serializer = OrderCreateSerializer(data=request.data, context={'request': request})
 
-        if request.user.user_type != 'customer':
+        if request.user.type != 'customer':
             raise PermissionDenied("Only customers can place orders.")
         if serializer.is_valid():
             order = serializer.save()
@@ -78,7 +78,7 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def order_count(request, business_user_id):
     try:
-        user = User.objects.get(pk=business_user_id, user_type='business')
+        user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
         return Response({'error':'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
     count = Order.objects.filter(business_user=user, status='in_progress').count()
@@ -88,7 +88,7 @@ def order_count(request, business_user_id):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def completed_order_count(request, business_user_id):
-    user = get_object_or_404(User, pk=business_user_id, user_type='business')
+    user = get_object_or_404(User, pk=business_user_id, type='business')
     count = Order.objects.filter(business_user=user, status='completed').count()
     return Response({'completed_order_count': count})
 

@@ -43,7 +43,7 @@ class PublicOfferSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = request.user if request else None
 
-        if not user or user.user_type != "business":
+        if not user or user.type != "business":
             raise serializers.ValidationError({"error": "Only business users can create offers."})
 
         offer = Offer.objects.create(user=user, **validated_data)
@@ -142,9 +142,9 @@ class OfferSerializer(serializers.ModelSerializer):
             user = request.user if request else None
             
             print(user)
-            print(user.user_type)
+            print(user.type)
             
-            if not user or user.user_type != "business":
+            if not user or user.type != "business":
                 raise serializers.ValidationError({"error": "Only business users can create offers."})
             
             details_data = validated_data.pop("details", [])

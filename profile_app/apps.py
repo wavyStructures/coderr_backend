@@ -37,14 +37,14 @@ class ProfileAppConfig(AppConfig):
         # Create guest accounts
         guest_accounts = {
             "andrey": {
-                "user_type": "customer",
+                "type": "customer",
                 "first_name": "Andrey",
                 "last_name": "Guest",
                 "email": "andrey@example.com",
                 "password": "asdasd"
             },
             "kevin": {
-                "user_type": "business",
+                "type": "business",
                 "first_name": "Kevin",
                 "last_name": "Guest",
                 "email": "kevin@example.com",
@@ -57,7 +57,7 @@ class ProfileAppConfig(AppConfig):
             user.first_name = data["first_name"]
             user.last_name = data["last_name"]
             user.email = data["email"]
-            user.user_type = data["user_type"]
+            user.type = data["type"]
 
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
                 user.set_password(data["password"])
@@ -70,7 +70,7 @@ class ProfileAppConfig(AppConfig):
             user.first_name = f'Customer{i}'
             user.last_name = f'LastNameC{i}'
             user.email = f'customer{i}@example.com'
-            user.user_type = 'customer'
+            user.type = 'customer'
             
             # Only hash and set password if needed
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
@@ -142,7 +142,7 @@ class ProfileAppConfig(AppConfig):
             user.email = f'business{i}@example.com'
             user.first_name = f'Business{i}'
             user.last_name = f'LastNameB{i}'
-            user.user_type = 'business'
+            user.type = 'business'
             
             user.location = predefined_locations.get(i, random.choice(locations))
             # user.description = descriptions[i]
@@ -155,7 +155,7 @@ class ProfileAppConfig(AppConfig):
             user.save()
 
         # Create sample offers
-        business_users = User.objects.filter(user_type="business")
+        business_users = User.objects.filter(type="business")
         if business_users.exists():
             some_user_instance = business_users.first()  
         else:
@@ -179,8 +179,18 @@ class ProfileAppConfig(AppConfig):
             delivery_times = []
 
             offer_types = ['basic', 'standard', 'premium']
-            for j, offer_type in enumerate(offer_types):  # Create 3 details per offer
-                price = random.randint(50, 200)
+            base_price = random.randint(50, 120)
+            standard_price = base_price + random.randint(10, 50)
+            premium_price = standard_price + random.randint(10, 50)
+
+            price_map = {
+                'basic': base_price,
+                'standard': standard_price,
+                'premium': premium_price,
+            }
+
+            for j, offer_type in enumerate(offer_types):
+                price = price_map[offer_type]
                 delivery_time_in_days = random.randint(1, 14)
 
                 OfferDetail.objects.create(
@@ -193,7 +203,24 @@ class ProfileAppConfig(AppConfig):
                 )
 
                 prices.append(price)
-                delivery_times.append(delivery_time_in_days)
+                delivery_times.append(delivery_time_in_days)         
+
+            
+            # for j, offer_type in enumerate(offer_types):  # Create 3 details per offer
+            #     price = random.randint(50, 200)
+            #     delivery_time_in_days = random.randint(1, 14)
+
+            #     OfferDetail.objects.create(
+            #         offer=offer,
+            #         offer_type=offer_type,
+            #         price=price,
+            #         delivery_time_in_days=delivery_time_in_days,
+            #         title=f"{offer_type.capitalize()} Package",
+            #         description=f"Detail{j+1} for offer{i}"
+            #     )
+
+            #     prices.append(price)
+            #     delivery_times.append(delivery_time_in_days)
 
             # Set the new annotated fields
             offer.min_price = min(prices)
@@ -202,8 +229,8 @@ class ProfileAppConfig(AppConfig):
 
         # Create sample orders
 
-        customer = User.objects.filter(user_type='customer').order_by('?').first()
-        business = User.objects.filter(user_type='business').order_by('?').first()
+        customer = User.objects.filter(type='customer').order_by('?').first()
+        business = User.objects.filter(type='business').order_by('?').first()
 
         if not customer or not business:
             print("Skipping order creation: customer or business user not found.")
@@ -213,8 +240,8 @@ class ProfileAppConfig(AppConfig):
             Order.objects.update_or_create(
                 id=i + 1,  
                  defaults={
-                    'customer_user': User.objects.filter(user_type='customer').order_by('?').first(),
-                    'business_user': User.objects.filter(user_type='business').order_by('?').first(),
+                    'customer_user': User.objects.filter(type='customer').order_by('?').first(),
+                    'business_user': User.objects.filter(type='business').order_by('?').first(),
                     'status': random.choice(['pending', 'completed', 'in_progress']),
                     'price': getattr(offer, 'price', Decimal('100.00')),
                     'title': random.choice(['Logo Design', 'Flyer Design', 'Webseite']),
@@ -227,8 +254,8 @@ class ProfileAppConfig(AppConfig):
             )
 
         # Create sample reviews
-        customer_users = list(User.objects.filter(user_type="customer"))
-        business_users = list(User.objects.filter(user_type="business"))
+        customer_users = list(User.objects.filter(type="customer"))
+        business_users = list(User.objects.filter(type="business"))
 
         if not customer_users or not business_users:
             print("Skipping reviews: missing customer or business users.")
@@ -269,33 +296,4 @@ class ProfileAppConfig(AppConfig):
                 )
                 created += 1
                      
-                   
-            # for i in range(10):
-            #     reviewer = random.choice(customer_users)
-            #     business_user = random.choice(business_users)
-                
-            #     if (reviewer.id, business_user.id) not in used_pairs:    
-            #         used_pairs.add((reviewer.id, business_user.id))
-                
-            #     Review.objects.update_or_create(
-            #         id=i + 1,  
-            #         defaults={
-            #             'business_user': business_user, 
-            #             'reviewer': reviewer,
-            #             'rating': random.randint(3, 5),
-            #             'description': random.choice([
-            #                 "Sehr professioneller Service.",
-            #                 "Top Qualität und schnelle Lieferung!",
-            #                 "Würde ich definitiv weiterempfehlen.",
-            #                 "Freundlich, kompetent und zuverlässig.",
-            #                 "Hat alles perfekt geklappt!",
-            #                 "Sehr zufrieden mit dem Ergebnis.",
-            #                 "Sehr zufrieden mit dem Ergebnis.",
-            #                 f"Dies ist ein generischer Kommentar für Review {i+1}.",
-            #                 ])
-            #         }
-            #     )
-            #     break
-            # else:
-            #     attempts +=1 
 

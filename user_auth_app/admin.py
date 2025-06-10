@@ -10,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
         'id',
         'username',
         'email',
-        'user_type',
+        'type',
         'location',
         'tel',
         'is_guest',
@@ -19,7 +19,7 @@ class CustomUserAdmin(UserAdmin):
         'created_at',
     )
     list_filter = (
-        'user_type',
+        'type',
         'is_guest',
         'is_staff',
         'is_superuser',
@@ -36,7 +36,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password')}),
         ('Personal Info', {'fields': ('tel', 'location', 'file', 'uploaded_at', 'description')}),
-        ('User Type & Status', {'fields': ('user_type', 'is_guest', 'working_hours')}),
+        ('User Type & Status', {'fields': ('type', 'is_guest', 'working_hours')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Dates', {'fields': ('last_login', 'created_at')}),
     )
@@ -44,6 +44,6 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'user_type', 'tel', 'location', 'is_guest', 'file'),
+            'fields': ('username', 'email', 'password1', 'password2', 'type', 'tel', 'location', 'is_guest', 'file'),
         }),
     )

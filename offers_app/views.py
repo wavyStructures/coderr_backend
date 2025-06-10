@@ -34,7 +34,8 @@ class OfferListView(ListCreateAPIView):
     ordering_fields = [
             'created_at',
             'updated_at',
-            'user',
+            'min_price',
+            'min_delivery_time',
         ]
     search_fields = ['title', 'description']
     
@@ -60,9 +61,9 @@ class OfferListView(ListCreateAPIView):
             except ValueError:
                 pass
 
-        user_type = self.request.query_params.get('user_type')
-        if user_type:
-            qs = qs.filter(user__user_type=user_type)
+        type = self.request.query_params.get('type')
+        if type:
+            qs = qs.filter(user__type=type)
 
         location = self.request.query_params.get('location')
         if location:

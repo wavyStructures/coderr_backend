@@ -41,7 +41,7 @@ class CustomUser(AbstractUser):
     location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)
     tel = models.CharField(max_length=20, default="123456789")
-    user_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='customer')
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='customer')
     
     description = models.TextField(blank=True, null=True)
 

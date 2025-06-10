@@ -41,7 +41,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user
 
-        if user.user_type != 'customer':
+        if user.type != 'customer':
             raise serializers.ValidationError("Only customers can place orders.")
         
         offer_detail_id = validated_data.pop('offer_detail_id', None)

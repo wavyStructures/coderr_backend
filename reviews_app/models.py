@@ -10,13 +10,13 @@ class Review(models.Model):
    
     business_user = models.ForeignKey(
         CustomUser, related_name='received_reviews',
-        on_delete=models.CASCADE, limit_choices_to={'user_type': 'business'}, 
+        on_delete=models.CASCADE, limit_choices_to={'type': 'business'}, 
         null=True
     )
 
     reviewer = models.ForeignKey(
         CustomUser, related_name='written_reviews',
-        on_delete=models.CASCADE, limit_choices_to={'user_type': 'customer'},
+        on_delete=models.CASCADE, limit_choices_to={'type': 'customer'},
         null=True
     )
     rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])

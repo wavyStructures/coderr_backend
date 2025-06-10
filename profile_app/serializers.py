@@ -13,9 +13,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             "user",
             "username", "first_name", "last_name", "file",
             "location", "tel", "description", "working_hours",
-            "user_type", "email", "created_at"
+            "type", "email", "created_at"
         ]
-        read_only_fields = ["user", "username", "user_type", "created_at"]
+        read_only_fields = ["user", "username", "type", "created_at"]
 
    
     def update(self, instance, validated_data):
@@ -31,7 +31,7 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         fields = [
             "user", "username", "first_name", "last_name",
             "file", "location", "tel", "email", "description",
-            "working_hours", "user_type", 'created_at'
+            "working_hours", "type", 'created_at'
         ]
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
@@ -39,7 +39,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'email', 'created_at', 'uploaded_at', 'user_type']
+        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'email', 'created_at', 'uploaded_at', 'type']
 
 
 
