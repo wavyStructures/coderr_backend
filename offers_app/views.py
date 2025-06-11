@@ -50,6 +50,14 @@ class OfferListView(ListCreateAPIView):
             annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
 
+        min_price = self.request.query_params.get('min_price')
+        if min_price:
+            try:
+                min_price = float(min_price)
+                qs = qs.filter(annotated_min_price__gte=min_price)
+            except ValueError:
+                pass 
+            
         creator_id = self.request.query_params.get('creator_id')
         if creator_id:
             qs = qs.filter(user__id=creator_id)

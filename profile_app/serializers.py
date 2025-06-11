@@ -10,12 +10,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            "user",
-            "username", "first_name", "last_name", "file",
-            "location", "tel", "description", "working_hours",
-            "type", "email", "created_at"
+            'user',
+            'username', 'first_name', 'last_name', 'file',
+            'location', 'tel', 'description', 'working_hours',
+            'type', 'email', 'created_at'
         ]
-        read_only_fields = ["user", "username", "type", "created_at"]
+        read_only_fields = ['user', 'username', 'type', 'created_at']
 
    
     def update(self, instance, validated_data):
@@ -29,10 +29,17 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            "user", "username", "first_name", "last_name",
-            "file", "location", "tel", "email", "description",
-            "working_hours", "type", 'created_at'
+            'user', 'username', 'first_name', 'last_name',
+            'file', 'location', 'tel', 'description',
+            'working_hours', 'type'
         ]
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        for field in ['first_name', 'last_name', 'tel', 'location', 'description', 'working_hours']:
+            if representation.get(field) is None:
+                representation[field] = ''
+        return representation
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField(source='id', read_only=True)

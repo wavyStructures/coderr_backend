@@ -87,6 +87,7 @@ class ProfileDetailView(APIView):
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CustomerListView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -96,7 +97,9 @@ class CustomerListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class BusinessListView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
 
     def get(self, request):
         businesses = CustomUser.objects.filter(type="business")
