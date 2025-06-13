@@ -10,7 +10,7 @@ class OfferListViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         
-class OfferDetailViewTest(APITestCase):
+class OfferDetailsViewTest(APITestCase):
     def setUp(self):
         def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="pass")

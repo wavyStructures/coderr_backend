@@ -18,10 +18,10 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         model = OfferDetail
 
         fields = [
-            "id", "title", "description", "revisions",
+            "id", "title", "revisions",
             "delivery_time_in_days", "price", "features", "offer_type"
         ]
-        
+       
     def get_url(self, obj):
         request = self.context.get("request")           
         if request is None:
@@ -95,22 +95,6 @@ class OfferSingleSerializer(serializers.ModelSerializer):
             'min_price',
             'min_delivery_time'
         ]
-
-# class OfferSingleSerializer(serializers.ModelSerializer):
-    
-#     url = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = OfferDetail
-#         fields = ["id", "url"]
-
-#     def get_url(self, obj):
-#         request = self.context.get("request")
-#         if request:
-#             return request.build_absolute_uri(
-#                 reverse("offer-detail-view", kwargs={"pk": obj.id}, request=request)
-#             )
-#         return reverse("offer-detail-view", kwargs={"pk": obj.id})
 
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
@@ -223,26 +207,4 @@ class OfferSerializer(serializers.ModelSerializer):
         return instance
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# class OfferRetrieveSerializer(OfferSerializer):
-#     details = OfferMiniDetailAbsoluteSerializer(many=True, read_only=True)
-
-#     class Meta(OfferSerializer.Meta):
-#         pass  # Use same fields, just override details serializer
-    
-    
 
