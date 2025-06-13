@@ -13,7 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 
 from .models import Offer, OfferDetail
-from .serializers import OfferSerializer, OfferDetailSerializer, PublicOfferSerializer
+from .serializers import OfferSerializer, OfferDetailSerializer, PublicOfferSerializer, OfferSingleSerializer
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsOwnerOrReadOnly
@@ -99,13 +99,22 @@ class OfferListView(ListCreateAPIView):
         public_data = PublicOfferSerializer(full_offer, context=self.get_serializer_context()).data
         return Response(public_data, status=status.HTTP_201_CREATED)
 
-class OfferDetailView(RetrieveUpdateDestroyAPIView):
+class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all().order_by('id')
     serializer_class = OfferSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+class OfferSingleView(RetrieveAPIView):
+    queryset = Offer.objects.all()
+    serializer_class = OfferSingleSerializer
     
 
-class OfferDetailRetrieveView(RetrieveAPIView):
-    queryset = OfferDetail.objects.all()
-    serializer_class = OfferDetailSerializer
+    def get_queryset(self):
+        return Offer.objects.annotate(
+            annotated_min_price=Min('details__price'),
+            annotated_min_delivery_time=Min('details__delivery_time_in_days')
+        )
+   
+
+
 

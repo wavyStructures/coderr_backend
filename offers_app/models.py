@@ -43,16 +43,7 @@ class OfferDetail(models.Model):
     offer_type = models.CharField(max_length=10, choices=OFFER_TYPES)
 
     class Meta:
-        """
-        Ensures there's only one basic, standard, and premium per offer.
-        """
-
         unique_together = ('offer', 'offer_type')
 
     def __str__(self):
-        return f"Detail for {self.offer.title} - {self.offer_type.capitalize()}"
-
-
-
-    
-
+        return f"Detail for {self.offer.title} - {self.offer_type.capitalize()}" 

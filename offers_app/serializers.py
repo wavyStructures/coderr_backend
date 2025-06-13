@@ -26,7 +26,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         request = self.context.get("request")           
         if request is None:
             return None
-        return reverse("offer-detail-retrieve", kwargs={"pk": obj.id}, request=request)
+        return reverse("offer-detail-view", kwargs={"pk": obj.id}, request=request)
 
 
 class PublicOfferSerializer(serializers.ModelSerializer):
@@ -63,20 +63,54 @@ class OfferMiniDetailSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return f"/offerdetails/{obj.id}/"
 
-class OfferMiniDetailAbsoluteSerializer(serializers.ModelSerializer):
+
+class OfferDetailURLSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
 
     class Meta:
         model = OfferDetail
-        fields = ["id", "url"]
+        fields = ['id', 'url']
 
     def get_url(self, obj):
-        request = self.context.get("request")
-        if request:
-            return request.build_absolute_uri(
-                reverse("offer-detail-retrieve", kwargs={"pk": obj.id}, request=request)
-            )
-        return reverse("offer-detail-retrieve", kwargs={"pk": obj.id})
+        request = self.context.get('request')
+        return request.build_absolute_uri(reverse('offer-details-view', args=[obj.id]))
+
+
+class OfferSingleSerializer(serializers.ModelSerializer):
+    details = OfferDetailURLSerializer(many=True, read_only=True)
+    min_price = serializers.FloatField(source='annotated_min_price')
+    min_delivery_time = serializers.IntegerField(source='annotated_min_delivery_time')
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id',
+            'user',  
+            'title',
+            'image',
+            'description',
+            'created_at',
+            'updated_at',
+            'details',
+            'min_price',
+            'min_delivery_time'
+        ]
+
+# class OfferSingleSerializer(serializers.ModelSerializer):
+    
+#     url = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = OfferDetail
+#         fields = ["id", "url"]
+
+#     def get_url(self, obj):
+#         request = self.context.get("request")
+#         if request:
+#             return request.build_absolute_uri(
+#                 reverse("offer-detail-view", kwargs={"pk": obj.id}, request=request)
+#             )
+#         return reverse("offer-detail-view", kwargs={"pk": obj.id})
 
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
@@ -189,11 +223,26 @@ class OfferSerializer(serializers.ModelSerializer):
         return instance
 
 
-class OfferRetrieveSerializer(OfferSerializer):
-    details = OfferMiniDetailAbsoluteSerializer(many=True, read_only=True)
 
-    class Meta(OfferSerializer.Meta):
-        pass  # Use same fields, just override details serializer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# class OfferRetrieveSerializer(OfferSerializer):
+#     details = OfferMiniDetailAbsoluteSerializer(many=True, read_only=True)
+
+#     class Meta(OfferSerializer.Meta):
+#         pass  # Use same fields, just override details serializer
     
     
 

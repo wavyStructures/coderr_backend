@@ -17,7 +17,7 @@ class OfferDetailViewTest(APITestCase):
         self.offer = Offer.objects.create(title="Test Offer", description="Test", user=self.user)
 
     def test_offer_detail_view(self):
-        url = reverse('offer-detail-main', args=[self.offer.id])
+        url = reverse('offer-detail-view', args=[self.offer.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         

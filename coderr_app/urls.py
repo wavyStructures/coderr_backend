@@ -1,6 +1,6 @@
 from django.urls import path, include
 from .views import BaseInfoView
-from offers_app.views import OfferDetailView, OfferDetailRetrieveView
+from offers_app.views import OfferDetailsView
 from orders_app.views import order_count, completed_order_count
 
 
@@ -10,7 +10,12 @@ urlpatterns = [
     path('profiles/', include('profile_app.list_urls')),   
     
     path('offers/', include('offers_app.urls')),
-    path('offerdetails/<int:pk>/', OfferDetailRetrieveView.as_view(), name='offer-detail-retrieve'), 
+    path('offerdetails/<int:pk>/', OfferDetailsView.as_view(), name='offer-details-view'), 
+# urlpatterns = [
+#     path('', OfferListView.as_view(), name='offer-list'), 
+#     path('<int:pk>/', OfferSingleView.as_view(), name='offer-single-view'),
+# ] 
+
     
     path('order-count/<int:business_user_id>/', order_count, name='order-count'),
     path('completed-order-count/<int:business_user_id>/', completed_order_count, name='completed-order'),
