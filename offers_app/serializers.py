@@ -27,6 +27,15 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         if request is None:
             return None
         return reverse("offer-detail-view", kwargs={"pk": obj.id}, request=request)
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        price = data.get("price")
+
+        if isinstance(price, float) and price.is_integer():
+            data["price"] = int(price)
+
+        return data
 
 
 class PublicOfferSerializer(serializers.ModelSerializer):
