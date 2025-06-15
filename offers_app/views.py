@@ -3,7 +3,8 @@ from django.db.models import Min
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError, NotAuthenticated
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -39,53 +40,68 @@ class OfferListView(ListCreateAPIView):
         ]
     search_fields = ['title', 'description']
     
+    
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    def get_queryset(self):
-        qs = Offer.objects.annotate(
-            annotated_min_price=Min('details__price'),
-            annotated_min_delivery_time=Min('details__delivery_time_in_days')
-        )
 
-        min_price = self.request.query_params.get('min_price')
-        if min_price:
-            try:
+    def get_queryset(self):
+        try:
+            qs = Offer.objects.annotate(
+                annotated_min_price=Min('details__price'),
+                annotated_min_delivery_time=Min('details__delivery_time_in_days')
+            )
+
+            min_price = self.request.query_params.get('min_price')
+            if min_price:
                 min_price = float(min_price)
                 qs = qs.filter(annotated_min_price__gte=min_price)
-            except ValueError:
-                pass 
-            
-        creator_id = self.request.query_params.get('creator_id')
-        if creator_id:
-            qs = qs.filter(user__id=creator_id)
 
-        max_delivery_time = self.request.query_params.get('max_delivery_time')
-        if max_delivery_time:
-            try:
-                qs = qs.filter(min_delivery_time__lte=int(max_delivery_time))
-            except ValueError:
-                pass
+            creator_id = self.request.query_params.get('creator_id')
+            if creator_id:
+                qs = qs.filter(user__id=creator_id)
 
-        type = self.request.query_params.get('type')
-        if type:
-            qs = qs.filter(user__type=type)
+            max_delivery_time = self.request.query_params.get('max_delivery_time')
+            if max_delivery_time:
+                max_delivery_time = int(max_delivery_time)
+                qs = qs.filter(annotated_min_delivery_time__lte=max_delivery_time)
 
-        location = self.request.query_params.get('location')
-        if location:
-            qs = qs.filter(user__profile__location__icontains=location)
-        
-        return qs
-    
+            type = self.request.query_params.get('type')
+            if type:
+                qs = qs.filter(user__type=type)
+
+            location = self.request.query_params.get('location')
+            if location:
+                qs = qs.filter(user__profile__location__icontains=location)
+
+            return qs
+
+        except (ValueError, TypeError) as e:
+            raise ValidationError({'detail': 'Ungültige Anfrageparameter.', 'error': str(e)})
+
     def get_serializer_class(self):
         if self.request.method == "GET":
             return OfferSerializer
         return PublicOfferSerializer
-    
+
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return Response({'detail': 'Benutzer ist nicht authentifiziert.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if getattr(user, 'type', None) != 'business':
+            return Response({'detail': "Authentifizierter Benutzer ist kein 'business' Profil."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            response = super().create(request, *args, **kwargs)
+
+        except ValidationError as e:
+            return Response({'detail': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'detail': 'Interner Serverfehler beim Erstellen des Angebots.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         offer_id = response.data.get('id')
         if not offer_id:
@@ -93,12 +109,13 @@ class OfferListView(ListCreateAPIView):
 
         try:
             full_offer = Offer.objects.get(pk=offer_id)
+            public_data = PublicOfferSerializer(full_offer, context=self.get_serializer_context()).data
+            return Response(public_data, status=status.HTTP_201_CREATED)
         except Offer.DoesNotExist:
-            return response
-        
-        public_data = PublicOfferSerializer(full_offer, context=self.get_serializer_context()).data
-        return Response(public_data, status=status.HTTP_201_CREATED)
-
+            return Response({'detail': 'Angebot wurde erstellt, aber konnte nicht geladen werden.'}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'detail': 'Interner Serverfehler nach der Angebotserstellung.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
 class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = OfferDetail.objects.all()
