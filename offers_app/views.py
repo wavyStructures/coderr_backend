@@ -127,13 +127,49 @@ class OfferDetailsView(RetrieveUpdateDestroyAPIView):
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
 
-class OfferSingleView(RetrieveAPIView):
+class OfferSingleView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
-    serializer_class = OfferSingleSerializer
-    
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return OfferSingleSerializer
+        return PublicOfferSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
     def get_queryset(self):
         return Offer.objects.annotate(
             annotated_min_price=Min('details__price'),
             annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
+
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+        except NotAuthenticated:
+            return Response({'detail': 'Benutzer ist nicht authentifiziert.'},
+                            status=status.HTTP_401_UNAUTHORIZED)     
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Das Angebot mit der angegebenen ID wurde nicht gefunden.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except PermissionDenied as e:
+            return Response({'detail': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
+                            status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response({'detail': 'Das Angebot wurde erfolgreich aktualisiert.', 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+
+        except ValidationError as e:
+            return Response({'detail': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'detail': 'Interner Serverfehler beim Aktualisieren des Angebots.', 'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
