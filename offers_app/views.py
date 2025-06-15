@@ -1,8 +1,10 @@
 from django.db import transaction
 from django.db.models import Min
 from rest_framework import status
-from rest_framework.views import APIView
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from rest_framework.exceptions import PermissionDenied, ValidationError, NotAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -120,29 +122,29 @@ class OfferListView(ListCreateAPIView):
 class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
-
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return [AllowAny()]
-        return [IsAuthenticated(), IsOwnerOrReadOnly()]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = []  
 
     def retrieve(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            return Response({'detail': 'Benutzer ist nicht authentifiziert.'},
+                            status=status.HTTP_401_UNAUTHORIZED)
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        except NotAuthenticated:
-            return Response({'detail': 'Benutzer ist nicht authentifiziert.'},
-                            status=status.HTTP_401_UNAUTHORIZED)     
+            return Response({
+                'detail': 'Das Angebotsdetail wurde erfolgreich abgerufen.',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+
         except ObjectDoesNotExist:
             return Response({'detail': 'Das Angebotsdetail mit der angegebenen ID wurde nicht gefunden.'},
                             status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied as e:
             return Response({'detail': str(e)}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
-            return Response({'detail': 'Interner Serverfehler beim Laden des Angebotsdetails.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            return Response({'detail': 'Interner Serverfehler beim Laden des Angebotsdetails.', 'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class OfferSingleView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
