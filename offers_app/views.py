@@ -126,6 +126,23 @@ class OfferDetailsView(RetrieveUpdateDestroyAPIView):
             return [AllowAny()]
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except NotAuthenticated:
+            return Response({'detail': 'Benutzer ist nicht authentifiziert.'},
+                            status=status.HTTP_401_UNAUTHORIZED)     
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Das Angebotsdetail mit der angegebenen ID wurde nicht gefunden.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except PermissionDenied as e:
+            return Response({'detail': str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'detail': 'Interner Serverfehler beim Laden des Angebotsdetails.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class OfferSingleView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
@@ -173,3 +190,5 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
         except Exception as e:
             return Response({'detail': 'Interner Serverfehler beim Aktualisieren des Angebots.', 'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            
