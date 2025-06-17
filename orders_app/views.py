@@ -32,13 +32,9 @@ class OrderListCreateAPIView(APIView):
                 )
 
             serializer = OrderSerializer(orders, many=True)
-            return Response(
-                {
-                    "details": "Die Liste der Bestellungen wurde erfolgreich abgerufen.",
-                    "data": serializer.data
-                },
-                status=status.HTTP_200_OK
-            )
+            response = Response(serializer.data, status=status.HTTP_200_OK)
+            response['X-Status-Message'] = 'Die Liste der Bestellungen wurde erfolgreich abgerufen.'
+            return response
         except Exception as e:
             return Response(
                 {"details": "Interner Serverfehler.", "error": str(e)},
