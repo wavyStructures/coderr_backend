@@ -155,40 +155,40 @@ class OrderDetailAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        
-def delete(self, request, pk):
-    try:
-        if not request.user or not request.user.is_authenticated:
+            
+    def delete(self, request, pk):
+        try:
+            if not request.user or not request.user.is_authenticated:
+                return Response(
+                    {"message": "Benutzer ist nicht authentifiziert."},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            order = get_object_or_404(Order, pk=pk)
+
+            if not request.user.is_staff:
+                return Response(
+                    {"message": "Benutzer ist nicht berechtigt, diese Bestellung zu löschen."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            order.delete()
             return Response(
-                {"message": "Benutzer ist nicht authentifiziert."},
-                status=status.HTTP_401_UNAUTHORIZED
+                {"message": "Die Bestellung wurde erfolgreich gelöscht."},
+                status=status.HTTP_204_NO_CONTENT
             )
 
-        order = get_object_or_404(Order, pk=pk)
-
-        if not request.user.is_staff:
+        except Order.DoesNotExist:
             return Response(
-                {"message": "Benutzer ist nicht berechtigt, diese Bestellung zu löschen."},
-                status=status.HTTP_403_FORBIDDEN
+                {"message": "Es wurde keine Bestellung mit der angegebenen ID gefunden."},
+                status=status.HTTP_404_NOT_FOUND
             )
 
-        order.delete()
-        return Response(
-            {"message": "Die Bestellung wurde erfolgreich gelöscht."},
-            status=status.HTTP_204_NO_CONTENT
-        )
-
-    except Order.DoesNotExist:
-        return Response(
-            {"message": "Es wurde keine Bestellung mit der angegebenen ID gefunden."},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    except Exception as e:
-        return Response(
-            {"message": "Interner Serverfehler.", "error": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        except Exception as e:
+            return Response(
+                {"message": "Interner Serverfehler.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 from rest_framework.decorators import api_view
@@ -202,15 +202,25 @@ def order_count(request, business_user_id):
     try:
         user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
-        return Response({'error':'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
-    count = Order.objects.filter(business_user=user, status='in_progress').count()
-    return Response({'order_count': count})
+        return Response({'error': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        count = Order.objects.filter(business_user=user, status='in_progress').count()
+        return Response({'order_count': count}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': 'Interner Serverfehler.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def completed_order_count(request, business_user_id):
-    user = get_object_or_404(User, pk=business_user_id, type='business')
-    count = Order.objects.filter(business_user=user, status='completed').count()
-    return Response({'completed_order_count': count})
-
+    try:
+        user = User.objects.get(pk=business_user_id, type='business')
+    except User.DoesNotExist:
+        return Response({'error': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        count = Order.objects.filter(business_user=user, status='completed').count()
+        return Response({'completed_order_count': count}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': 'Interner Serverfehler.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
