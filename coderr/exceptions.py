@@ -13,7 +13,7 @@ def custom_exception_handler(exc, context):
         print("Exception type:", type(exc).__name__)
         print("Exception message:", str(exc))
         return Response({
-            'error': 'An unexpected error occurred',
+            'error': 'Unerwarteter Fehler.',
             'detail': str(exc),
             'type': type(exc).__name__,
         }, status=500)
@@ -21,25 +21,25 @@ def custom_exception_handler(exc, context):
           
     if isinstance(exc, NotAuthenticated):
         return Response(
-            {"detail": "NotAuthenticated"},
+            {"detail": "Benutzer ist nicht authentifiziert."},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
     elif isinstance(exc, PermissionDenied):
         return Response(
-            {"detail": "PermissionDenied"},
+            {"detail": "Unberechtigter Zugriff."},
             status=status.HTTP_403_FORBIDDEN
         )
 
     elif isinstance(exc, NotFound):
         return Response(
-            {"detail": "NotFound"},
+            {"detail": "Nicht gefunden."},
             status=status.HTTP_404_NOT_FOUND
         )
 
     elif isinstance(exc, ValidationError):
         return Response(
-            {"detail": "ValidationError"},
+            {"detail": "Validationsfehler."},
             status=status.HTTP_400_BAD_REQUEST
         )
 

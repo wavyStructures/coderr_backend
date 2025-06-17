@@ -62,6 +62,22 @@ class PublicOfferSerializer(serializers.ModelSerializer):
 
         return offer
 
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop("details", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if details_data is not None:
+            instance.details.all().delete()
+
+            for detail_data in details_data:
+                OfferDetail.objects.create(offer=instance, **detail_data)
+
+        return instance
+
+
 class OfferMiniDetailSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
 
@@ -120,6 +136,7 @@ class OfferSerializer(serializers.ModelSerializer):
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
     
+   
     
     class Meta:
         model = Offer
@@ -191,9 +208,6 @@ class OfferSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"internal_error": str(e)})
 
     def update(self, instance, validated_data):
-        """
-        Allow partial updates to an offer and its related details.
-        """
         details_data = validated_data.pop("details", None)
         
         for attr, value in validated_data.items():

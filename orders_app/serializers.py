@@ -36,7 +36,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         except OfferDetail.DoesNotExist:
             raise serializers.ValidationError("Offer not found.")
         return value
-    
+ 
     def create(self, validated_data):
         request = self.context['request']
         user = request.user
@@ -69,7 +69,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             offer_type=offer_detail.offer_type,
             status='in_progress',
         )
-        
+    
+
 
 
         

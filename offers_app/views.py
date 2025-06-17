@@ -155,8 +155,6 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
         return PublicOfferSerializer
 
     def get_permissions(self):
-        if self.request.method == 'GET':
-            return [AllowAny()]
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
     def get_queryset(self):
@@ -164,7 +162,6 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
             annotated_min_price=Min('details__price'),
             annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
-
 
     def update(self, request, *args, **kwargs):
         try:

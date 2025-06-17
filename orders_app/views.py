@@ -12,63 +12,185 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 class OrderListCreateAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AllowAny]     
     
     def get(self, request):
-        user = request.user
+        if not request.user or not request.user.is_authenticated:
+            return Response(
+                {"details": "Zugriff verweigert: Der Benutzer muss authentifiziert sein."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )             
         
-        if user.is_superuser:
-            orders = Order.objects.all()
-        else:
-            orders = Order.objects.filter(
-                Q(customer_user=user) | Q(business_user=user)
-            )
+        try:
+            user = request.user
+                
+            if user.is_superuser:
+                orders = Order.objects.all()
+            else:
+                orders = Order.objects.filter(
+                    Q(customer_user=user) | Q(business_user=user)
+                )
 
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer = OrderSerializer(orders, many=True)
+            return Response(
+                {
+                    "details": "Die Liste der Bestellungen wurde erfolgreich abgerufen.",
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {"details": "Interner Serverfehler.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     def post(self, request):
-        serializer = OrderCreateSerializer(data=request.data, context={'request': request})
+        if not request.user or not request.user.is_authenticated:
+            return Response(
+                {"message": "Benutzer ist nicht authentifiziert."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         if request.user.type != 'customer':
-            raise PermissionDenied("Only customers can place orders.")
+            return Response(
+                {"message": "Benutzer hat keine Berechtigung, eine Bestellung zu erstellen (nur 'customer'-Benutzer erlaubt)."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = OrderCreateSerializer(data=request.data, context={'request': request})
+
+        if not request.data.get('offer_detail_id'):
+            return Response(
+                {"message": "Ungültige Anfragedaten: 'offer_detail_id' fehlt."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if serializer.is_valid():
-            order = serializer.save()
-            response_serializer = OrderSerializer(order)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                order = serializer.save()
+                response_serializer = OrderSerializer(order)
+                return Response(
+                    {
+                        "message": "Die Bestellung wurde erfolgreich erstellt.",
+                        "data": response_serializer.data
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+            except OfferDetail.DoesNotExist:
+                return Response(
+                    {"message": "Das angegebene Angebotsdetail wurde nicht gefunden."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            except Exception as e:
+                return Response(
+                    {"message": f"Interner Serverfehler: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        else:
+            return Response(
+                {
+                    "message": "Ungültige Anfragedaten.",
+                    "errors": serializer.errors
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class OrderDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, pk):
+        try:
+            if not request.user or not request.user.is_authenticated:
+                return Response(
+                    {"message": "Benutzer ist nicht authentifiziert."},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            order = get_object_or_404(Order, pk=pk)
+
+            if request.user != order.business_user:
+                return Response(
+                    {"message": "Benutzer hat keine Berechtigung, diese Bestellung zu aktualisieren."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            new_status = request.data.get('status')
+
+            if not new_status or new_status not in dict(Order.STATUS_CHOICES):
+                return Response(
+                    {"message": "Ungültiger Statuswert."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            order.status = new_status
+            order.save()
+
+            order = get_object_or_404(Order, pk=pk)
+
+            if request.user != order.business_user:
+                raise PermissionDenied("Nur der Anbieter darf den Bestellstatus aktualisieren.")
+
+            serializer = OrderSerializer(order, data=request.data, partial=True)
+            if serializer.is_valid():
+                updated_order = serializer.save()
+                return Response(
+                    {
+                        "detail": "Status erfolgreich aktualisiert.",
+                        "data": OrderSerializer(updated_order).data
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+        except Order.DoesNotExist:
+            return Response(
+                {"message": "Die angegebene Bestellung wurde nicht gefunden."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+            return Response(
+                {"message": "Interner Serverfehler.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        
+def delete(self, request, pk):
+    try:
+        if not request.user or not request.user.is_authenticated:
+            return Response(
+                {"message": "Benutzer ist nicht authentifiziert."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         order = get_object_or_404(Order, pk=pk)
 
-        if request.user != order.business_user:
-            raise PermissionDenied("Only business users can update order status")
-        
-        new_status = request.data.get('status')
-        if new_status not in dict(Order.STATUS_CHOICES):
-            return Response({"error": "Invalid status value."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        order.status = new_status
-        order.save()
-        serializer = OrderSerializer(order)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-        
-    def delete(self, request, pk):
         if not request.user.is_staff:
-            raise PermissionDenied("Only admin users can delete orders.")
+            return Response(
+                {"message": "Benutzer ist nicht berechtigt, diese Bestellung zu löschen."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        order = get_object_or_404(Order, pk=pk)
         order.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
+        return Response(
+            {"message": "Die Bestellung wurde erfolgreich gelöscht."},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+    except Order.DoesNotExist:
+        return Response(
+            {"message": "Es wurde keine Bestellung mit der angegebenen ID gefunden."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    except Exception as e:
+        return Response(
+            {"message": "Interner Serverfehler.", "error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
-    
-    
 from rest_framework.decorators import api_view
 from django.contrib.auth import get_user_model
 
