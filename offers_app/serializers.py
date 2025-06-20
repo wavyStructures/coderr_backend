@@ -88,21 +88,8 @@ class OfferMiniDetailSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return f"/offerdetails/{obj.id}/"
 
-
-class OfferDetailURLSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = OfferDetail
-        fields = ['id', 'url']
-
-    def get_url(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(reverse('offer-details-view', args=[obj.id]))
-
-
 class OfferSingleSerializer(serializers.ModelSerializer):
-    details = OfferDetailURLSerializer(many=True, read_only=True)
+    details = OfferDetailSerializer(many=True, read_only=True)
     min_price = serializers.FloatField(source='annotated_min_price')
     min_delivery_time = serializers.IntegerField(source='annotated_min_delivery_time')
 
@@ -164,18 +151,19 @@ class OfferSerializer(serializers.ModelSerializer):
             fields["details"] = OfferDetailSerializer(many=True)
         else:
             view = request.parser_context.get("view") if request and request.parser_context else None
-            action = getattr(view, 'action', None)
+            is_offer_detail_view = (
+                isinstance(view, APIView) and
+                view.__class__.__name__.lower().endswith("detailview")
+            )
 
-            use_full = False
-            if isinstance(view, APIView):
-                if view.__class__.__name__.lower().endswith("detailview"):
-                    use_full = True
-            else:
-                use_full = (action == "retrieve")
-
-            fields["details"] = OfferDetailSerializer(many=True, read_only=True) if use_full else OfferMiniDetailSerializer(many=True, read_only=True)
+            fields["details"] = (
+                OfferDetailSerializer(many=True, read_only=True)
+                if is_offer_detail_view
+                else OfferMiniDetailSerializer(many=True, read_only=True)
+            )
 
         return fields
+
         
     def create(self, validated_data):
         """Create an offer and its related details."""

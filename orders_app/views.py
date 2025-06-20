@@ -33,7 +33,7 @@ class OrderListCreateAPIView(APIView):
 
             serializer = OrderSerializer(orders, many=True)
             response = Response(serializer.data, status=status.HTTP_200_OK)
-            response['X-Status-Message'] = 'Die Liste der Bestellungen wurde erfolgreich abgerufen.'
+            # response['X-Status-Message'] = 'Die Liste der Bestellungen wurde erfolgreich abgerufen.'
             return response
         except Exception as e:
             return Response(
@@ -68,7 +68,7 @@ class OrderListCreateAPIView(APIView):
                 response_serializer = OrderSerializer(order)
                 return Response(
                     {
-                        "message": "Die Bestellung wurde erfolgreich erstellt.",
+                        # "message": "Die Bestellung wurde erfolgreich erstellt.",
                         "data": response_serializer.data
                     },
                     status=status.HTTP_201_CREATED

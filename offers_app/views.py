@@ -92,18 +92,18 @@ class OfferListView(ListCreateAPIView):
         user = request.user
 
         if not user or not user.is_authenticated:
-            return Response({'detail': 'Benutzer ist nicht authentifiziert.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Benutzer ist nicht authentifiziert.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         if getattr(user, 'type', None) != 'business':
-            return Response({'detail': "Authentifizierter Benutzer ist kein 'business' Profil."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'message': "Authentifizierter Benutzer ist kein 'business' Profil."}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             response = super().create(request, *args, **kwargs)
 
         except ValidationError as e:
-            return Response({'detail': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'detail': 'Interner Serverfehler beim Erstellen des Angebots.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'message': 'Interner Serverfehler beim Erstellen des Angebots.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         offer_id = response.data.get('id')
         if not offer_id:
@@ -114,38 +114,48 @@ class OfferListView(ListCreateAPIView):
             public_data = PublicOfferSerializer(full_offer, context=self.get_serializer_context()).data
             return Response(public_data, status=status.HTTP_201_CREATED)
         except Offer.DoesNotExist:
-            return Response({'detail': 'Angebot wurde erstellt, aber konnte nicht geladen werden.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Angebot wurde erstellt, aber konnte nicht geladen werden.'}, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({'detail': 'Interner Serverfehler nach der Angebotserstellung.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'message': 'Interner Serverfehler nach der Angebotserstellung.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
+    lookup_field = 'pk'
     authentication_classes = [TokenAuthentication]
-    permission_classes = []  
+    permission_classes = [IsAuthenticated]
+    
+class OfferDetailsView(RetrieveUpdateDestroyAPIView):
+    queryset = OfferDetail.objects.all()
+    serializer_class = OfferDetailSerializer
+    lookup_field = 'pk'
+
+    def get_permissions(self):
+        return [IsAuthenticated()]
 
     def retrieve(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            return Response({'detail': 'Benutzer ist nicht authentifiziert.'},
-                            status=status.HTTP_401_UNAUTHORIZED)
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response({
-                'detail': 'Das Angebotsdetail wurde erfolgreich abgerufen.',
-                'data': serializer.data
-            }, status=status.HTTP_200_OK)
+
+            response = Response(serializer.data, status=status.HTTP_200_OK)
+            response['X-Status-Message'] = 'Das Angebotsdetail wurde erfolgreich abgerufen.'
+            return response
 
         except ObjectDoesNotExist:
-            return Response({'detail': 'Das Angebotsdetail mit der angegebenen ID wurde nicht gefunden.'},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'message': 'Das Angebotsdetail mit der angegebenen ID wurde nicht gefunden.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         except PermissionDenied as e:
-            return Response({'detail': str(e)}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'message': str(e)}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
-            return Response({'detail': 'Interner Serverfehler beim Laden des Angebotsdetails.', 'error': str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            return Response(
+                {'message': 'Interner Serverfehler beim Laden des Angebotsdetails.', 'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            
 class OfferSingleView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
 
@@ -163,31 +173,50 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
             annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            response = Response(serializer.data, status=status.HTTP_200_OK  )
+            return response
+        
+        except ObjectDoesNotExist:
+            return Response({'message': 'Das Angebot mit der angegebenen ID wurde nicht gefunden.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except PermissionDenied as e:
+            return Response({'message': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
+                            status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'message': 'Interner Serverfehler beim Laden des Angebots.', 'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        
     def update(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
         except NotAuthenticated:
-            return Response({'detail': 'Benutzer ist nicht authentifiziert.'},
+            return Response({'message': 'Benutzer ist nicht authentifiziert.'},
                             status=status.HTTP_401_UNAUTHORIZED)     
         except ObjectDoesNotExist:
-            return Response({'detail': 'Das Angebot mit der angegebenen ID wurde nicht gefunden.'},
+            return Response({'message': 'Das Angebot mit der angegebenen ID wurde nicht gefunden.'},
                             status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied as e:
-            return Response({'detail': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
+            return Response({'message': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
                             status=status.HTTP_403_FORBIDDEN)
 
         try:
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            return Response({'detail': 'Das Angebot wurde erfolgreich aktualisiert.', 'data': serializer.data},
+            return Response({
+                'data': serializer.data},
                             status=status.HTTP_200_OK)
 
         except ValidationError as e:
-            return Response({'detail': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail},
+            return Response({'message': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail},
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'detail': 'Interner Serverfehler beim Aktualisieren des Angebots.', 'error': str(e)},
+            return Response({'message': 'Interner Serverfehler beim Aktualisieren des Angebots.', 'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            
+                      
