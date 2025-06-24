@@ -31,7 +31,7 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         fields = [
             'user', 'username', 'first_name', 'last_name',
             'file', 'location', 'tel', 'description',
-            'working_hours', 'type'
+            'working_hours', 'type', 'email', 'created_at'
         ]
     
     def to_representation(self, instance):

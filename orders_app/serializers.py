@@ -1,16 +1,61 @@
 from rest_framework import serializers
 from .models import Order
 from offers_app.models import Offer, OfferDetail
+from user_auth_app.serializers import CustomUserSerializer
+
 
 class OrderSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Order
-        fields = '__all__'
-        read_only_fields = [
-            'id', 'customer_user', 'business_user', 'title', 'price',
-            'features', 'revisions', 'delivery_time_in_days', 'offer_type',
-            'status', 'created_at', 'updated_at'
+        fields = [
+            'id',
+            'customer_user',
+            'business_user',
+            'title',
+            'revisions',
+            'delivery_time_in_days',
+            'price',
+            'features',
+            'offer_type',
+            'status',
+            'created_at',
+            'updated_at',
         ]
+        read_only_fields = [
+            'id',
+            'customer_user',
+            'business_user',
+            'title',
+            'revisions',
+            'delivery_time_in_days',
+            'price',
+            'features',
+            'offer_type',
+            'created_at',
+            'updated_at',
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        if not data.get('revisions'):
+            data['revisions'] = 1
+
+        try:
+            price = float(data.get('price', 0))
+            if price <= 0:
+                data['price'] = "1.00"
+        except:
+            data['price'] = "1.00"
+
+        if not data.get('delivery_time_in_days'):
+            data['delivery_time_in_days'] = 1
+
+        if not data.get('features'):
+            data['features'] = ["Keine Features verfügbar"]
+
+        return data
 
 class OrderCreateSerializer(serializers.ModelSerializer):        
     offer_detail_id = serializers.IntegerField(write_only=True)

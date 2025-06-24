@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from orders_app.models import Order
 from offers_app.models import Offer
 from .serializers import OrderSerializer, OrderCreateSerializer
@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 class OrderListCreateAPIView(APIView):
-    permission_classes = [AllowAny]     
+    permission_classes = [IsAuthenticated]
     
     def get(self, request):
         if not request.user or not request.user.is_authenticated:
