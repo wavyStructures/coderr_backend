@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
 from rest_framework.reverse import reverse
 from .models import Offer, OfferDetail
 from user_auth_app.serializers import CustomUserSerializer
@@ -69,11 +70,31 @@ class PublicOfferSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
+        existing_details = {d.offer_type: d for d in instance.details.all()}
+
         if details_data is not None:
-            instance.details.all().delete()
+            updated_offer_types = set()
 
             for detail_data in details_data:
-                OfferDetail.objects.create(offer=instance, **detail_data)
+                offer_type = detail_data.get("offer_type")
+                if not offer_type:
+                    continue
+
+                updated_offer_types.add(offer_type)
+
+                if offer_type in existing_details:
+    
+                    detail = existing_details[offer_type]
+                    for key, value in detail_data.items():
+                        setattr(detail, key, value)
+                    detail.save()
+                else:
+                    OfferDetail.objects.create(offer=instance, **detail_data)
+        all_details = instance.details.all()
+        if all_details.exists():
+            instance.min_price = min(d.price for d in all_details)
+            instance.min_delivery_time = min(d.delivery_time_in_days for d in all_details)
+            instance.save()
 
         return instance
 
@@ -88,8 +109,9 @@ class OfferMiniDetailSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return f"/offerdetails/{obj.id}/"
 
+
 class OfferSingleSerializer(serializers.ModelSerializer):
-    details = OfferDetailSerializer(many=True, read_only=True)
+    # details = OfferDetailSerializer(many=True, read_only=True)
     min_price = serializers.FloatField(source='annotated_min_price')
     min_delivery_time = serializers.IntegerField(source='annotated_min_delivery_time')
 
@@ -107,6 +129,16 @@ class OfferSingleSerializer(serializers.ModelSerializer):
             'min_price',
             'min_delivery_time'
         ]
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+
+        if request and request.method in "GET":
+            fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
+        else:
+            fields["details"] = OfferDetailSerializer(many=True)
+        return fields
 
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
@@ -146,21 +178,14 @@ class OfferSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
         request = self.context.get("request")
+        view = self.context.get("view")
 
         if request and request.method in ("POST", "PUT", "PATCH"):
             fields["details"] = OfferDetailSerializer(many=True)
+        elif request and request.method == "GET" and isinstance(view, RetrieveUpdateDestroyAPIView):
+            fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
         else:
-            view = request.parser_context.get("view") if request and request.parser_context else None
-            is_offer_detail_view = (
-                isinstance(view, APIView) and
-                view.__class__.__name__.lower().endswith("detailview")
-            )
-
-            fields["details"] = (
-                OfferDetailSerializer(many=True, read_only=True)
-                if is_offer_detail_view
-                else OfferMiniDetailSerializer(many=True, read_only=True)
-            )
+            fields["details"] = OfferDetailSerializer(many=True, read_only=True)
 
         return fields
 
