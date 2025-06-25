@@ -70,26 +70,22 @@ class PublicOfferSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
-        existing_details = {d.offer_type: d for d in instance.details.all()}
 
         if details_data is not None:
-            updated_offer_types = set()
+            existing_details = {d.offer_type: d for d in instance.details.all()}
+
 
             for detail_data in details_data:
                 offer_type = detail_data.get("offer_type")
-                if not offer_type:
+                if not offer_type or offer_type not in existing_details:
                     continue
 
-                updated_offer_types.add(offer_type)
-
-                if offer_type in existing_details:
-    
-                    detail = existing_details[offer_type]
-                    for key, value in detail_data.items():
+                detail = existing_details[offer_type]
+                for key, value in detail_data.items():
+                    if key != "offer_type":
                         setattr(detail, key, value)
-                    detail.save()
-                else:
-                    OfferDetail.objects.create(offer=instance, **detail_data)
+                detail.save()
+            
         all_details = instance.details.all()
         if all_details.exists():
             instance.min_price = min(d.price for d in all_details)

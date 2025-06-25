@@ -208,9 +208,9 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            return Response({
-                'data': serializer.data},
-                            status=status.HTTP_200_OK)
+            
+            read_serializer = self.get_serializer(instance)
+            return Response({'data': read_serializer.data}, status=status.HTTP_200_OK)
 
         except ValidationError as e:
             return Response({'message': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail},

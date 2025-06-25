@@ -27,7 +27,7 @@ def custom_exception_handler(exc, context):
 
     elif isinstance(exc, PermissionDenied):
         return Response(
-            {"detail": "Unberechtigter Zugriff."},
+            {"detail": "Authentifizierter Benutzer ist nicht der Eigentümer des Angebots."},
             status=status.HTTP_403_FORBIDDEN
         )
 
