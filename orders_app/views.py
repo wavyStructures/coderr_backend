@@ -23,18 +23,16 @@ class OrderListCreateAPIView(APIView):
         
         try:
             user = request.user
-                
-            if user.is_superuser:
-                orders = Order.objects.all()
-            else:
-                orders = Order.objects.filter(
-                    Q(customer_user=user) | Q(business_user=user)
-                )
+                    
+            orders = (
+                Order.objects.filter(customer_user=user) |
+                Order.objects.filter(business_user=user)
+            )
 
             serializer = OrderSerializer(orders, many=True)
-            response = Response(serializer.data, status=status.HTTP_200_OK)
             # response['X-Status-Message'] = 'Die Liste der Bestellungen wurde erfolgreich abgerufen.'
-            return response
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
         except Exception as e:
             return Response(
                 {"details": "Interner Serverfehler.", "error": str(e)},
@@ -193,22 +191,27 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def order_count(request, business_user_id):
     try:
-        user = User.objects.get(pk=business_user_id, type='business')
+        target_user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
         return Response({'error': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=status.HTTP_404_NOT_FOUND)
-    
+    if request.user != target_user and not request.user.is_staff:
+        return Response(
+            {'detail': 'Zugriff verweigert: Sie dürfen nur Ihre eigenen Bestelldaten sehen.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
     try:
-        count = Order.objects.filter(business_user=user, status='in_progress').count()
+        count = Order.objects.filter(business_user=target_user, status='in_progress').count()
         return Response({'order_count': count}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': 'Interner Serverfehler.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+    
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def completed_order_count(request, business_user_id):
     try:
         user = User.objects.get(pk=business_user_id, type='business')

@@ -43,10 +43,4 @@ def custom_exception_handler(exc, context):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # elif isinstance(exc, APIException):
-    #     return Response(
-    #         {"detail": "APIException"},
-    #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
-    #     )
-
     return response

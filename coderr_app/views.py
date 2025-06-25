@@ -21,6 +21,7 @@ class BaseInfoView(APIView):
     def get(self, request):
         total_reviews = Review.objects.count()
         average_rating = Review.objects.aggregate(Avg('rating'))['rating__avg']
+        average_rating = round(average_rating, 1)
         total_business_profiles = CustomUser.objects.filter(type='business').count()
         total_offers = Offer.objects.count()
         
