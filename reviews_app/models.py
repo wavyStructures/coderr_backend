@@ -28,3 +28,5 @@ class Review(models.Model):
         unique_together = ('business_user', 'reviewer')
         
         
+        
+
