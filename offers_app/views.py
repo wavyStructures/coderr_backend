@@ -65,6 +65,12 @@ class OfferListView(ListCreateAPIView):
             if creator_id:
                 qs = qs.filter(user__id=creator_id)
 
+            min_delivery_time = self.request.query_params.get('min_delivery_time')
+            if min_delivery_time:
+                min_delivery_time = int(min_delivery_time)
+                qs = qs.filter(annotated_min_delivery_time__gte=min_delivery_time)
+            
+            
             max_delivery_time = self.request.query_params.get('max_delivery_time')
             if max_delivery_time:
                 max_delivery_time = int(max_delivery_time)
