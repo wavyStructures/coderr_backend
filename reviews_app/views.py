@@ -9,7 +9,6 @@ from .permissions import IsReviewerOrReadOnly, IsCustomerAndAuthenticated
 class ReviewListCreateView(generics.ListCreateAPIView):
     serializer_class = ReviewSerializer
     pagination_class = None
-    # filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['business_user', 'reviewer']
     search_fields = ['description']
@@ -26,7 +25,6 @@ class ReviewListCreateView(generics.ListCreateAPIView):
             queryset = queryset.filter(reviewer_id=reviewer_id)
     
         return queryset
-        # return Review.objects.filter(reviewer=self.request.user)
     
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)

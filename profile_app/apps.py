@@ -222,7 +222,7 @@ class ProfileAppConfig(AppConfig):
                  defaults={
                     'customer_user': User.objects.filter(type='customer').order_by('?').first(),
                     'business_user': User.objects.filter(type='business').order_by('?').first(),
-                    'status': random.choice(['pending', 'completed', 'in_progress']),
+                    'status': random.choice(['completed', 'in_progress']),
                     'price': getattr(offer, 'price', Decimal('100.00')),
                     'title': random.choice(['Logo Design', 'Flyer Design', 'Webseite']),
                     'revisions': random.choice([1, 2, 3, -1]),
