@@ -27,7 +27,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         request = self.context.get("request")           
         if request is None:
             return None
-        return reverse("offer-detail-view", kwargs={"pk": obj.id}, request=request)
+        return reverse("offer-details-view", kwargs={"pk": obj.id}, request=request)
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -103,11 +103,10 @@ class OfferMiniDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "url"]
         
     def get_url(self, obj):
-        return f"/offerdetails/{obj.id}/"
-
+        request = self.context.get("request")
+        return reverse("offer-details-view", kwargs={"pk": obj.id}, request=request)
 
 class OfferSingleSerializer(serializers.ModelSerializer):
-    # details = OfferDetailSerializer(many=True, read_only=True)
     min_price = serializers.FloatField(source='annotated_min_price')
     min_delivery_time = serializers.IntegerField(source='annotated_min_delivery_time')
 
@@ -178,7 +177,8 @@ class OfferSerializer(serializers.ModelSerializer):
 
         if request and request.method in ("POST", "PUT", "PATCH"):
             fields["details"] = OfferDetailSerializer(many=True)
-        elif request and request.method == "GET" and isinstance(view, RetrieveUpdateDestroyAPIView):
+        elif request and request.method == "GET":
+        # elif request and request.method == "GET" and isinstance(view, RetrieveUpdateDestroyAPIView):
             fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
         else:
             fields["details"] = OfferDetailSerializer(many=True, read_only=True)
