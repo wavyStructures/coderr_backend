@@ -66,8 +66,7 @@ class OrderListCreateAPIView(APIView):
                 response_serializer = OrderSerializer(order)
                 return Response(
                     {
-                        # "message": "Die Bestellung wurde erfolgreich erstellt.",
-                        "data": response_serializer.data
+                        response_serializer.data
                     },
                     status=status.HTTP_201_CREATED
                 )
@@ -131,8 +130,7 @@ class OrderDetailAPIView(APIView):
                 updated_order = serializer.save()
                 return Response(
                     {
-                        "detail": "Status erfolgreich aktualisiert.",
-                        "data": OrderSerializer(updated_order).data
+                        OrderSerializer(updated_order).data
                     },
                     status=status.HTTP_200_OK
                 )

@@ -58,6 +58,10 @@ class ProfileAppConfig(AppConfig):
             user.last_name = data["last_name"]
             user.email = data["email"]
             user.type = data["type"]
+            
+            if username == "kevin":
+                user.location = "Munich"
+                user.working_hours = "Mo–Fr 09:00–15:00 Uhr"
 
             if not user.password or not user.password.startswith('pbkdf2_sha256$'):
                 user.set_password(data["password"])
