@@ -191,12 +191,7 @@ def order_count(request, business_user_id):
         target_user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
         return Response({'error': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=status.HTTP_404_NOT_FOUND)
-    if request.user != target_user and not request.user.is_staff:
-        return Response(
-            {'detail': 'Zugriff verweigert: Sie dürfen nur Ihre eigenen Bestelldaten sehen.'},
-            status=status.HTTP_403_FORBIDDEN
-        )
-
+    
     try:
         count = Order.objects.filter(business_user=target_user, status='in_progress').count()
         return Response({'order_count': count}, status=status.HTTP_200_OK)
