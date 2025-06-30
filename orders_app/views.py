@@ -65,9 +65,7 @@ class OrderListCreateAPIView(APIView):
                 order = serializer.save()
                 response_serializer = OrderSerializer(order)
                 return Response(
-                    {
-                        response_serializer.data
-                    },
+                    response_serializer.data,
                     status=status.HTTP_201_CREATED
                 )
             except OfferDetail.DoesNotExist:
@@ -129,9 +127,7 @@ class OrderDetailAPIView(APIView):
             if serializer.is_valid():
                 updated_order = serializer.save()
                 return Response(
-                    {
-                        OrderSerializer(updated_order).data
-                    },
+                    OrderSerializer(updated_order).data,
                     status=status.HTTP_200_OK
                 )
 

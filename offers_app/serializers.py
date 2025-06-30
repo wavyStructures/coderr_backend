@@ -77,8 +77,15 @@ class PublicOfferSerializer(serializers.ModelSerializer):
 
             for detail_data in details_data:
                 offer_type = detail_data.get("offer_type")
-                if not offer_type or offer_type not in existing_details:
-                    continue
+                if not offer_type:
+                    raise serializers.ValidationError(
+                        {"offer_type": "Offer type is required."}
+                    )
+                
+                if offer_type not in existing_details:
+                    raise serializers.ValidationError({
+                        "details": f"Invalid 'offer_type': '{offer_type}'. It must match one of the existing offer details."
+                    })
 
                 detail = existing_details[offer_type]
                 for key, value in detail_data.items():
@@ -173,12 +180,12 @@ class OfferSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
         request = self.context.get("request")
-        view = self.context.get("view")
+        
 
         if request and request.method in ("POST", "PUT", "PATCH"):
             fields["details"] = OfferDetailSerializer(many=True)
         elif request and request.method == "GET":
-        # elif request and request.method == "GET" and isinstance(view, RetrieveUpdateDestroyAPIView):
+        
             fields["details"] = OfferMiniDetailSerializer(many=True, read_only=True)
         else:
             fields["details"] = OfferDetailSerializer(many=True, read_only=True)
@@ -216,35 +223,5 @@ class OfferSerializer(serializers.ModelSerializer):
         except Exception as e:
             raise serializers.ValidationError({"internal_error": str(e)})
 
-def update(self, instance, validated_data):
-    details_data = validated_data.pop("details", None)
-
-    for attr, value in validated_data.items():
-        setattr(instance, attr, value)
-    instance.save()
-
-    if details_data is not None:
-        existing_details = {detail.id: detail for detail in instance.details.all()}
-
-        for raw_detail_data in details_data:
-            detail_data = dict(raw_detail_data)
-            detail_id = detail_data.get("id")
-
-            if detail_id and detail_id in existing_details:
-                detail_instance = existing_details[detail_id]
-                for attr, value in detail_data.items():
-                    if attr != "id":
-                        setattr(detail_instance, attr, value)
-                detail_instance.save()
-            else:
-                OfferDetail.objects.create(offer=instance, **detail_data)
-
-    all_details = instance.details.all()
-    if all_details.exists():
-        instance.min_price = min(d.price for d in all_details)
-        instance.min_delivery_time = min(d.delivery_time_in_days for d in all_details)
-        instance.save()
-
-    return instance
 
 
