@@ -1,5 +1,7 @@
 from django.db import transaction
 from django.db.models import Min
+from django.http import Http404
+
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
@@ -183,15 +185,33 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            response = Response(serializer.data, status=status.HTTP_200_OK  )
+            response = Response(serializer.data, status=status.HTTP_200_OK)
             return response
         
-        except ObjectDoesNotExist:
+        except Http404:
             return Response({'message': 'Das Angebot mit der angegebenen ID wurde nicht gefunden.'},
-                            status=status.HTTP_404_NOT_FOUND)
+                        status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied as e:
             return Response({'message': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
                             status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({'message': 'Interner Serverfehler beim Laden des Angebots.', 'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        except Http404:
+            return Response({'message': 'Das Angebot wurde nicht gefunden.'}, status=status.HTTP_404_NOT_FOUND)
+        except PermissionDenied:
+            return Response({'message': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
+                            status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'message': 'Interner Serverfehler beim Löschen des Angebots.', 'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            
