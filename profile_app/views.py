@@ -6,6 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from user_auth_app.models import CustomUser
 from user_auth_app.serializers import CustomUserSerializer
 from .serializers import (ProfileSerializer,BusinessProfileSerializer, CustomerProfileSerializer)

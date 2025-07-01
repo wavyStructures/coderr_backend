@@ -10,6 +10,8 @@ from offers_app.models import Offer
 from .serializers import OrderSerializer, OrderCreateSerializer
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.http import Http404
+
 
 class OrderListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
