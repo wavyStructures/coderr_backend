@@ -196,7 +196,10 @@ def order_count(request, business_user_id):
     
     try:
         count = Order.objects.filter(business_user=target_user, status='in_progress').count()
-        return Response({'order_count': count}, status=status.HTTP_200_OK)
+        if count > 0:
+            return Response({'order_count': count}, status=status.HTTP_200_OK)
+        return Response({}, status=status.HTTP_200_OK)
+
     except Exception as e:
         return Response({'error': 'Interner Serverfehler.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
