@@ -17,6 +17,10 @@ class OrderListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
+        """
+        Retrieve the list of orders for the authenticated user.
+        """
+
         if not request.user or not request.user.is_authenticated:
             return Response(
                 {"details": "Zugriff verweigert: Der Benutzer muss authentifiziert sein."},
@@ -42,6 +46,10 @@ class OrderListCreateAPIView(APIView):
             )
     
     def post(self, request):
+    """
+    Create a new order for a customer.
+    """
+
         if not request.user or not request.user.is_authenticated:
             return Response(
                 {"message": "Benutzer ist nicht authentifiziert."},
@@ -94,6 +102,10 @@ class OrderDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, pk):
+        """
+        Partially update an existing order. 
+        Accepts a JSON payload with the following attributes:status (string): One of the values in `Order.STATUS_CHOICES`
+        """
         try:
             if not request.user or not request.user.is_authenticated:
                 return Response(
@@ -147,6 +159,10 @@ class OrderDetailAPIView(APIView):
 
             
     def delete(self, request, pk):
+    """
+    Delete an order based on the provided primary key (pk).
+    """
+
         try:
             if not request.user or not request.user.is_authenticated:
                 return Response(
@@ -189,6 +205,10 @@ User = get_user_model()
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def order_count(request, business_user_id):
+    """
+    Retrieve the count of in progress orders for a specified business user.
+    """
+
     try:
         target_user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
@@ -207,6 +227,10 @@ def order_count(request, business_user_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def completed_order_count(request, business_user_id):
+    """
+    Retrieve the count of completed orders for a specified business user.
+    """
+
     try:
         user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
