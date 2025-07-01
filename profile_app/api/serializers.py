@@ -35,11 +35,24 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         ]
     
     def to_representation(self, instance):
+        """
+        If any of the following fields are None, set them to an empty string in the serialized output:
+
+            first_name
+            last_name
+            tel
+            location
+            description
+            working_hours
+
+        Done to prevent a KeyError when rendering the profile page.
+        """
         representation = super().to_representation(instance)
         for field in ['first_name', 'last_name', 'tel', 'location', 'description', 'working_hours']:
             if representation.get(field) is None:
                 representation[field] = ''
         return representation
+
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField(source='id', read_only=True)

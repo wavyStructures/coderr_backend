@@ -6,6 +6,9 @@ from django.core.validators import RegexValidator
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, tel="123456789", **extra_fields):
+        """
+        Creates and saves a regular user with the given email, username, and password.
+        """
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
@@ -15,9 +18,13 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, username, password=None, tel="123456789", **extra_fields):
+        """
+        Creates and saves a superuser with the given email and password.
+        """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, username, password, tel, **extra_fields)
+
 
 class CustomUser(AbstractUser):
     TYPE_CHOICES = [
@@ -35,8 +42,7 @@ class CustomUser(AbstractUser):
         )]
     )
     file = models.FileField(upload_to='profile_pictures/', null=True, blank=True)  
-    
-    
+        
     uploaded_at = models.DateTimeField(null=True, blank=True) 
     location = models.CharField(max_length=100, null=True, blank=True, default="")
     email = models.EmailField(unique=True)
@@ -56,12 +62,17 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()  
 
     def save(self, *args, **kwargs):
-
+        """
+        Save the user object to the database.
+        """
         if self.file and not self.uploaded_at:
             self.uploaded_at = now()
 
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """
+        Return a string representation of the user, which is its email address
+        """
         return self.email
 

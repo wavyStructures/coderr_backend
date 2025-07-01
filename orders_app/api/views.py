@@ -20,7 +20,6 @@ class OrderListCreateAPIView(APIView):
         """
         Retrieve the list of orders for the authenticated user.
         """
-
         if not request.user or not request.user.is_authenticated:
             return Response(
                 {"details": "Zugriff verweigert: Der Benutzer muss authentifiziert sein."},
@@ -28,15 +27,12 @@ class OrderListCreateAPIView(APIView):
             )             
         
         try:
-            user = request.user
-                    
+            user = request.user       
             orders = (
                 Order.objects.filter(customer_user=user) |
                 Order.objects.filter(business_user=user)
             )
-
             serializer = OrderSerializer(orders, many=True)
-            # response['X-Status-Message'] = 'Die Liste der Bestellungen wurde erfolgreich abgerufen.'
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except Exception as e:
@@ -46,10 +42,9 @@ class OrderListCreateAPIView(APIView):
             )
     
     def post(self, request):
-    """
-    Create a new order for a customer.
-    """
-
+        """
+        Create a new order for a customer.
+        """
         if not request.user or not request.user.is_authenticated:
             return Response(
                 {"message": "Benutzer ist nicht authentifiziert."},
@@ -114,7 +109,6 @@ class OrderDetailAPIView(APIView):
                 )
 
             order = get_object_or_404(Order, pk=pk)
-
             if request.user != order.business_user:
                 return Response(
                     {"message": "Benutzer hat keine Berechtigung, diese Bestellung zu aktualisieren."},
@@ -122,7 +116,6 @@ class OrderDetailAPIView(APIView):
                 )
 
             new_status = request.data.get('status')
-
             if not new_status or new_status not in dict(Order.STATUS_CHOICES):
                 return Response(
                     {"message": "Ungültiger Statuswert."},
@@ -133,7 +126,6 @@ class OrderDetailAPIView(APIView):
             order.save()
 
             order = get_object_or_404(Order, pk=pk)
-
             if request.user != order.business_user:
                 raise PermissionDenied("Nur der Anbieter darf den Bestellstatus aktualisieren.")
 
@@ -159,10 +151,9 @@ class OrderDetailAPIView(APIView):
 
             
     def delete(self, request, pk):
-    """
-    Delete an order based on the provided primary key (pk).
-    """
-
+        """
+        Delete an order based on the provided primary key (pk).
+        """
         try:
             if not request.user or not request.user.is_authenticated:
                 return Response(
@@ -208,7 +199,6 @@ def order_count(request, business_user_id):
     """
     Retrieve the count of in progress orders for a specified business user.
     """
-
     try:
         target_user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:
@@ -230,7 +220,6 @@ def completed_order_count(request, business_user_id):
     """
     Retrieve the count of completed orders for a specified business user.
     """
-
     try:
         user = User.objects.get(pk=business_user_id, type='business')
     except User.DoesNotExist:

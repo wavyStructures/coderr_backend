@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Order
+from ..models import Order
 from offers_app.models import Offer, OfferDetail
-from user_auth_app.serializers import CustomUserSerializer
+from user_auth_app.api.serializers import CustomUserSerializer
 
 
 class OrderSerializer(serializers.ModelSerializer):

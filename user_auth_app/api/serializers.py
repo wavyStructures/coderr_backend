@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser 
+from ..models import CustomUser 
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -23,7 +23,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "username", "email", "is_active"]   
 
     def update(self, instance, validated_data):
-
+        """
+        Updates a user instance with the given validated data.
+        """    
         allowed_fields = {
             "first_name", "last_name", "tel", "file", 
             "location", "description", "working_hours"
@@ -58,6 +60,9 @@ class FlattenedUserSerializer(serializers.ModelSerializer):
         ]
 
     def get_user(self, obj):
+        """
+        Returns the user's id.
+        """
         return obj.user.id 
 
     
@@ -74,6 +79,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         }  
 
     def validate(self, data):
+        """
+        Validates the provided data for user registration. Checks for:
+        1. Unique username
+        2. Password match
+        """
         if CustomUser.objects.filter(username=data['username']).exists():
             raise serializers.ValidationError({"username": "This username is already taken."})
         
@@ -82,8 +92,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        """
+        Creates a new user with the given validated data. It removes the repeated_password from the validated data and uses the password to set the user's password. After saving the user, the user is returned.
+        """
         validated_data.pop('repeated_password')
-
         password = validated_data.pop('password')  
         user = CustomUser(**validated_data)        
         user.set_password(password)                

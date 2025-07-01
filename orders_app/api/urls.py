@@ -6,5 +6,3 @@ urlpatterns = [
     path('<int:pk>/', OrderDetailAPIView.as_view(), name='order-detail')
     ]
 
-
-

@@ -17,11 +17,12 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 
-from .models import Offer, OfferDetail
+from ..models import Offer, OfferDetail
 from .serializers import OfferSerializer, OfferDetailSerializer, PublicOfferSerializer, OfferSingleSerializer
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsOwnerOrReadOnly
+
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 6  
@@ -46,12 +47,18 @@ class OfferListView(ListCreateAPIView):
     
     
     def get_permissions(self):
+        """
+        Override the default `get_permissions` method to allow any request when the request method is GET. 
+        """
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsAuthenticated()]
 
 
     def get_queryset(self):
+        """
+        Retrieve a queryset of offers with annotated minimum price and delivery time.
+        """
         try:
             qs = Offer.objects.annotate(
                 annotated_min_price=Min('details__price'),
@@ -71,8 +78,7 @@ class OfferListView(ListCreateAPIView):
             if min_delivery_time:
                 min_delivery_time = int(min_delivery_time)
                 qs = qs.filter(annotated_min_delivery_time__gte=min_delivery_time)
-            
-            
+                        
             max_delivery_time = self.request.query_params.get('max_delivery_time')
             if max_delivery_time:
                 max_delivery_time = int(max_delivery_time)
@@ -85,18 +91,23 @@ class OfferListView(ListCreateAPIView):
             location = self.request.query_params.get('location')
             if location:
                 qs = qs.filter(user__profile__location__icontains=location)
-
             return qs
 
         except (ValueError, TypeError) as e:
             raise ValidationError({'detail': 'Ungültige Anfrageparameter.', 'error': str(e)})
 
     def get_serializer_class(self):
+        """
+        Choose the appropriate serializer class for the request method. Method GET > OfferSerializer, otherwise > PublicOfferSerializer.
+        """
         if self.request.method == "GET":
             return OfferSerializer
         return PublicOfferSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Create a new offer with the given details. The authenticated user must be of type 'business' to create an offer.
+        """
         user = request.user
 
         if not user or not user.is_authenticated:
@@ -107,7 +118,6 @@ class OfferListView(ListCreateAPIView):
 
         try:
             response = super().create(request, *args, **kwargs)
-
         except ValidationError as e:
             return Response({'message': 'Ungültige Anfragedaten oder unvollständige Details.', 'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -134,15 +144,22 @@ class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
+    
 class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
     lookup_field = 'pk'
 
     def get_permissions(self):
+        """
+        Determine the permissions for the current request.
+        """
         return [IsAuthenticated()]
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve an offer detail by its ID.
+        """
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -164,24 +181,40 @@ class OfferDetailsView(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
             
+            
 class OfferSingleView(RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
 
     def get_serializer_class(self):
+        """
+        Choose the appropriate serializer class for the request method. Method GET > OfferSingleSerializer, otherwise > PublicOfferSerializer.
+        """
         if self.request.method == "GET":
             return OfferSingleSerializer
         return PublicOfferSerializer
 
     def get_permissions(self):
+        """
+        Determine the permissions for the current request.
+
+        For GET requests, everyone is allowed to retrieve the offer. All other
+        methods, only the owner of the offer is allowed to perform the action.
+        """
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
     def get_queryset(self):
+        """
+        Retrieve the queryset of offers with annotated minimum price and delivery time.
+        """
         return Offer.objects.annotate(
             annotated_min_price=Min('details__price'),
             annotated_min_delivery_time=Min('details__delivery_time_in_days')
         )
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve an offer by its ID.
+        """
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -198,8 +231,10 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
             return Response({'message': 'Interner Serverfehler beim Laden des Angebots.', 'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes the offer with the given ID if the authenticated user is the owner of the offer.
+        """
         try:
             instance = self.get_object()
             self.perform_destroy(instance)

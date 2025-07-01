@@ -12,6 +12,11 @@ class ProfileAppConfig(AppConfig):
     name = 'profile_app'
     
     def ready(self):
+        """
+        Overriden AppConfig.ready method.
+
+        This method is used to create sample data for development convenience.
+        """
         if "migrate" in sys.argv or "makemigrations" in sys.argv:
             return
         
@@ -33,6 +38,56 @@ class ProfileAppConfig(AppConfig):
             print("Skipping sample data creation — user table doesn't exist.")
 
     def create_sample_data(self, User, Offer, Order, OfferDetail, Review):
+        """
+        Creates sample data for development convenience.
+
+        Guest accounts are created with the following properties:
+          - username: andrey or kevin
+          - first_name: Andrey or Kevin
+          - last_name: Guest
+          - email: andrey@example.com or kevin@example.com
+          - password: asdasd
+
+        Customer and business users are created with the following properties:
+          - username: customer_user0 to customer_user4
+          - first_name: Customer0 to Customer4
+          - last_name: LastNameC0 to LastNameC4
+          - email: customer0@example.com to customer4@example.com
+          - password: password123
+
+          - username: business_user0 to business_user9
+          - first_name: Business0 to Business9
+          - last_name: LastNameB0 to LastNameB9
+          - email: business0@example.com to business9@example.com
+          - password: password123
+          - location: randomly chosen from predefined locations
+          - description: randomly chosen from predefined descriptions
+          - working_hours: randomly chosen from predefined working hours
+
+        Sample offers are created with the following properties:
+          - title: Offer 0 to Offer 9
+          - description: Description for offer 0 to Description for offer 9
+          - user: randomly chosen from business users
+          - image: None
+          - details: created with different prices and delivery times
+
+        Sample orders are created with the following properties:
+          - customer_user: randomly chosen from customer users
+          - business_user: randomly chosen from business users
+          - status: randomly chosen from completed or in_progress
+          - price: randomly chosen from 100.00 to 500.00
+          - title: randomly chosen from Logo Design, Flyer Design, or Web Seite
+          - revisions: randomly chosen from 1, 2, or 3
+          - features: empty list
+          - offer_type: randomly chosen from basic, standard, or premium
+          - delivery_time_in_days: randomly chosen from 3 to 14
+
+        Sample reviews are created with the following properties:
+          - reviewer: randomly chosen from customer users
+          - business_user: randomly chosen from business users
+          - rating: randomly chosen from 3 to 5
+          - description: randomly chosen from predefined descriptions
+        """
         
         # Create guest accounts
         guest_accounts = {

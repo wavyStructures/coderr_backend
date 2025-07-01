@@ -5,6 +5,9 @@ class IsOwnerOrReadOnly(BasePermission):
     Only allow owners of an offer to edit or delete it.
     """
     def has_object_permission(self, request, view, obj):
+        """
+        Check if the user has the permission to edit or delete the offer.
+        """
         if request.method in SAFE_METHODS:
             return True
 

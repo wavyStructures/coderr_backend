@@ -24,6 +24,11 @@ class ReviewAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
     def short_description(self, obj):
+        """
+        If the description is longer than 50 characters, return the first 50
+        characters with an ellipsis at the end. Otherwise, return the description
+        as is.
+        """
         return (obj.description[:50] + '...') if len(obj.description) > 50 else obj.description
 
     short_description.short_description = 'Description'

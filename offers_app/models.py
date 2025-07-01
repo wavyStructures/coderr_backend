@@ -18,6 +18,9 @@ class Offer(models.Model):
     min_delivery_time = models.PositiveIntegerField(default=3)  
 
     def __str__(self):
+        """
+        Return a string representation of the offer, which is its title.
+        """
         return self.title
 
 
@@ -46,4 +49,7 @@ class OfferDetail(models.Model):
         unique_together = ('offer', 'offer_type')
 
     def __str__(self):
+        """
+        Return a string representation of the offer, which is its title.
+        """
         return f"Detail for {self.offer.title} - {self.offer_type.capitalize()}" 

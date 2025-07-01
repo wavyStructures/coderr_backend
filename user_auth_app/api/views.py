@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from offers_app.models import Offer
 from orders_app.models import Order
 from reviews_app.models import Review
-from user_auth_app.serializers import CustomUserSerializer, RegisterSerializer
+from user_auth_app.api.serializers import CustomUserSerializer, RegisterSerializer
 
 
 CustomUser = settings.AUTH_USER_MODEL
@@ -20,6 +20,9 @@ class RegisterView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
+        """
+        Return a blank registration form
+        """
         return Response({
             "username": "",
             "email": "",
@@ -27,6 +30,9 @@ class RegisterView(APIView):
         })
 
     def post(self, request, *args, **kwargs):
+        """
+        Creates a new user with the given registration data. If the user was created successfully, a JSON response with the user's username, email, id and a token is returned.
+        """
         try:
             serializer = RegisterSerializer(data=request.data)
             if serializer.is_valid():
@@ -47,6 +53,9 @@ class CheckUsernameView(APIView):
     permission_classes = [AllowAny]  
 
     def post(self, request, *args, **kwargs):
+        """
+        Checks if a provided username already exists in the database. 
+        """
         username = request.data.get('username')
         if not username:
             return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -63,6 +72,9 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        """
+        Authenticate a user and return a token upon successful login.
+        """
         data = request.data
         username = data.get('username')
         password = data.get('password')
@@ -71,7 +83,7 @@ class LoginView(APIView):
             return Response({'error': 'Both username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = authenticate(username=username, password=password)
-        
+       
         if user is None:
             return Response({'error': 'Invalid username or password.'}, status=status.HTTP_400_BAD_REQUEST)
 

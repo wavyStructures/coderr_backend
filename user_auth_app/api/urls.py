@@ -1,5 +1,5 @@
 from django.urls import path, include
-from user_auth_app.views import LoginView, RegisterView, TestErrorView
+from user_auth_app.api.views import LoginView, RegisterView, TestErrorView
 
 urlpatterns = [
     path('login/', LoginView.as_view()),
