@@ -168,7 +168,7 @@ class OfferDetailsView(RetrieveUpdateDestroyAPIView):
             response['X-Status-Message'] = 'Das Angebotsdetail wurde erfolgreich abgerufen.'
             return response
 
-        except ObjectDoesNotExist:
+        except Http404: 
             return Response(
                 {'message': 'Das Angebotsdetail mit der angegebenen ID wurde nicht gefunden.'},
                 status=status.HTTP_404_NOT_FOUND
