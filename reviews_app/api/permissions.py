@@ -15,5 +15,6 @@ class IsCustomerAndAuthenticated(permissions.BasePermission):
         Only authenticated users of type 'customer' are allowed.
         """
         return request.user.is_authenticated and request.user.type == 'customer'
-    
+
+
          
