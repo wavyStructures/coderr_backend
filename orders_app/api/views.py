@@ -137,7 +137,7 @@ class OrderDetailAPIView(APIView):
                     status=status.HTTP_200_OK
                 )
 
-        except Order.DoesNotExist:
+        except Http404:
             return Response(
                 {"message": "Die angegebene Bestellung wurde nicht gefunden."},
                 status=status.HTTP_404_NOT_FOUND
