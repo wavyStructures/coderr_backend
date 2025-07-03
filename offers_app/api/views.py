@@ -208,16 +208,7 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
                 {"message": "Benutzer ist nicht authentifiziert"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
-        serializer = self.get_serializer(data=request.data, partial=True)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except ValidationError as e:
-            return Response(
-                {"message": "Ungültige Anfragedaten oder unvollständige Details.", "errors": e.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )  
-            
+                
         try:
             instance = self.get_object()
         except Http404:
@@ -226,13 +217,13 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if instance.owner != request.user:
+        if instance.user != request.user:
             return Response(
                 {"message": "Authentifizierter Benutzer ist nicht der Eigentümer des Angebots"},
                 status=status.HTTP_403_FORBIDDEN
             )
       
-        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         try:
             serializer.is_valid(raise_exception=True)
         except ValidationError as e:
@@ -241,14 +232,10 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response(
-            {"message": "Das Angebot wurde erfolgreich aktualisiert.", "data": serializer.data},
-            status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     def get_queryset(self):
         """

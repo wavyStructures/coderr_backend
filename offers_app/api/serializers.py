@@ -82,8 +82,7 @@ class PublicOfferSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
-        if details_data is not None:
-            existing_details = {d.offer_type: d for d in instance.details.all()}
+        if details_data:
 
             for detail_data in details_data:
                 offer_type = detail_data.get("offer_type")
@@ -91,13 +90,14 @@ class PublicOfferSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {"offer_type": "Offer type is required."}
                     )
-                
-                if offer_type not in existing_details:
-                    raise serializers.ValidationError({
-                        "details": f"Invalid 'offer_type': '{offer_type}'. It must match one of the existing offer details."
-                    })
 
-                detail = existing_details[offer_type]
+                try:
+                    detail = instance.details.get(offer_type=offer_type)
+                except OfferDetail.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {"offer_type": "Offer type does not exist."}
+                    )
+
                 for key, value in detail_data.items():
                     if key != "offer_type":
                         setattr(detail, key, value)
