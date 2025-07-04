@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 from ..models import Offer, OfferDetail
 from user_auth_app.api.serializers import CustomUserSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import PermissionDenied
 
 CustomUser = get_user_model()
 
@@ -76,6 +77,11 @@ class PublicOfferSerializer(serializers.ModelSerializer):
         """
         Update an existing offer instance with validated data.
         """
+
+        request = self.context.get("request")
+        if request and instance.user != request.user:
+            raise PermissionDenied("Sie dürfen dieses Angebot nicht bearbeiten.")
+
         details_data = validated_data.pop("details", None)
 
         for attr, value in validated_data.items():
@@ -83,7 +89,6 @@ class PublicOfferSerializer(serializers.ModelSerializer):
         instance.save()
 
         if details_data:
-
             for detail_data in details_data:
                 offer_type = detail_data.get("offer_type")
                 if not offer_type:
@@ -108,9 +113,10 @@ class PublicOfferSerializer(serializers.ModelSerializer):
             instance.min_price = min(d.price for d in all_details)
             instance.min_delivery_time = min(d.delivery_time_in_days for d in all_details)
             instance.save()
+
         return instance
-
-
+    
+    
 class OfferMiniDetailSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
 
@@ -221,9 +227,6 @@ class OfferSerializer(serializers.ModelSerializer):
         try:
             request = self.context.get("request")
             user = request.user if request else None
-            
-            print(user)
-            print(user.type)
             
             if not user or user.type != "business":
                 raise serializers.ValidationError({"error": "Only business users can create offers."})

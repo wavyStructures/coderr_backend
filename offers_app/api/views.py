@@ -144,11 +144,6 @@ class OfferDetailsView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
-    
-class OfferDetailsView(RetrieveUpdateDestroyAPIView):
-    queryset = OfferDetail.objects.all()
-    serializer_class = OfferDetailSerializer
-    lookup_field = 'pk'
 
     def get_permissions(self):
         """
@@ -202,41 +197,54 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
         """
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
     
-    def update(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
+    def patch(self, request, pk):
+        data = request.data
+        offer_type = data.get("offer_type")
+
+        user = request.user
+        if not user or not user.is_authenticated:
             return Response(
-                {"message": "Benutzer ist nicht authentifiziert"},
+                {"detail": "Benutzer ist nicht authentifiziert."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-                
+
         try:
-            instance = self.get_object()
-        except Http404:
+            offer = Offer.objects.get(pk=pk)
+        except Offer.DoesNotExist:
             return Response(
-                {"message": "Das Angebot mit der angegebenen ID wurde nicht gefunden."},
+                {"detail": "Das Angebot mit der angegebenen ID wurde nicht gefunden."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if instance.user != request.user:
+        if offer.user != user:
             return Response(
-                {"message": "Authentifizierter Benutzer ist nicht der Eigentümer des Angebots"},
+                {"detail": "Authentifizierter Benutzer ist nicht der Eigentümer des Angebots."},
                 status=status.HTTP_403_FORBIDDEN
             )
-      
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        serializer = PublicOfferSerializer(offer, data=data, partial=True, context={"request": request})
+
         try:
             serializer.is_valid(raise_exception=True)
-        except ValidationError as e:
+            serializer.save()
+
             return Response(
-                {"message": "Ungültige Anfragedaten oder unvollständige Details.", "errors": e.detail},
+                {"message": "Das Angebot wurde erfolgreich aktualisiert."},
+                status=status.HTTP_200_OK
+            )
+
+        except ValidationError as ve:
+            return Response(
+                {"detail": "Ungültige Anfragedaten oder unvollständige Details.", "errors": ve.detail},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        self.perform_update(serializer)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+        except Exception as e:
+            return Response(
+                {"error": "Unerwarteter Fehler.", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
     def get_queryset(self):
         """
         Retrieve the queryset of offers with annotated minimum price and delivery time.
@@ -275,11 +283,12 @@ class OfferSingleView(RetrieveUpdateDestroyAPIView):
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        except Http404:
-            return Response({'message': 'Das Angebot wurde nicht gefunden.'}, status=status.HTTP_404_NOT_FOUND)
         except PermissionDenied:
             return Response({'message': 'Authentifizierter Benutzer ist nicht der Eigentümer des Angebots.'}, 
                             status=status.HTTP_403_FORBIDDEN)
+        except Http404:
+            return Response({'message': 'Das Angebot wurde nicht gefunden.'}, status=status.HTTP_404_NOT_FOUND)
+       
         except Exception as e:
             return Response({'message': 'Interner Serverfehler beim Löschen des Angebots.', 'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
